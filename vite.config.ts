@@ -7,6 +7,11 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   base: process.env.BASE_PATH ?? '/',
   plugins: [react()],
+  server: {
+    // Codespaces proxies the dev server through *.app.github.dev; Vite's
+    // DNS-rebinding protection rejects that Host header unless allowed.
+    allowedHosts: ['.app.github.dev'],
+  },
   build: {
     // The modulepreload polyfill calls fetch(); disabling it keeps the
     // zero-tolerance bundle privacy check (scripts/check-privacy.mjs) clean.

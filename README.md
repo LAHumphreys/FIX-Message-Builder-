@@ -45,6 +45,8 @@ npm run test      # unit tests (npm run test:watch / test:coverage)
 npm run verify    # everything CI runs: typecheck, lint, format, test, build, privacy check
 ```
 
+A [devcontainer](.devcontainer/devcontainer.json) is included, so **GitHub Codespaces** works out of the box: create a codespace on `dev`, run `npm run dev`, and open the forwarded port — no local setup needed. Handy for development from a phone or tablet.
+
 ## Roadmap
 
 1. **Engine core** — canonical representation, dictionary load (FIX 4.4 first), tag=value renderer with checksum/bodylength
