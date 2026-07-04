@@ -23,7 +23,18 @@ Two layers, with the boundary enforced by lint rules:
 - **`src/engine/`** — pure TypeScript, zero DOM/browser dependencies, zero runtime dependencies. Canonical message representation, dictionaries, profile resolution, fragment merge, generators, validation, renderers, scenario (de)serialization.
 - **`src/ui/`** — React components over the engine. Thin: no business logic.
 
-Stack: TypeScript (strict), Vite, React, Vitest, ESLint + Prettier. GitHub Actions runs typecheck, lint, tests, and the bundle privacy check on every push, and deploys to GitHub Pages from `main`.
+Stack: TypeScript (strict), Vite, React, Vitest, ESLint + Prettier. GitHub Actions runs typecheck, lint, tests, and the bundle privacy check on every push.
+
+### Branches and deployment
+
+GitHub Pages serves two channels from the one site this repo gets:
+
+| Branch | URL                                     | Purpose                                      |
+| ------ | --------------------------------------- | -------------------------------------------- |
+| `main` | `https://<owner>.github.io/<repo>/`     | Stable                                       |
+| `dev`  | `https://<owner>.github.io/<repo>/dev/` | Rapid iteration; merge to `main` when stable |
+
+A push to either branch rebuilds and redeploys both (a Pages deployment always replaces the whole site), each with the privacy check applied.
 
 ## Development
 
