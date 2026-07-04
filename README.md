@@ -34,7 +34,7 @@ GitHub Pages serves two channels from the one site this repo gets:
 | `main` | `https://<owner>.github.io/<repo>/`     | Stable                                       |
 | `dev`  | `https://<owner>.github.io/<repo>/dev/` | Rapid iteration; merge to `main` when stable |
 
-A push to either branch rebuilds and redeploys both (a Pages deployment always replaces the whole site), each with the privacy check applied.
+A push to either branch rebuilds and redeploys both (a Pages deployment always replaces the whole site), each with the privacy check applied. `main` is protected and only changes via pull request from `dev`; the full branch model, merge policy, and repository-settings checklist are in [docs/WORKFLOW.md](docs/WORKFLOW.md).
 
 ## Development
 

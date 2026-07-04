@@ -11,6 +11,19 @@ acceptance criteria in detail.
 - `npm run test` / `npm run test:watch` / `npm run test:coverage`
 - `npm run dev` — Vite dev server
 
+## Branch & deployment workflow
+
+Full detail in **docs/WORKFLOW.md**. The short version:
+
+- Development work lands on **`dev`** (direct pushes are fine and auto-deploy
+  the preview channel at `…github.io/<repo>/dev/`).
+- **`main`** is protected — reach it only via PR from `dev`, merged with a
+  **merge commit** (never squash/rebase: it diverges `dev`). `main` deploys
+  the stable channel at the Pages site root.
+- Run `npm run verify` before pushing; it is exactly what CI enforces.
+- One Pages site serves both channels: every deploy rebuilds both branch tips
+  into a single artifact (`.github/workflows/deploy.yml`).
+
 ## Hard constraints
 
 - **Zero network activity after page load.** Never add fetch/XHR/WebSocket/beacon
