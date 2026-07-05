@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "Meridian Demo",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "fixVersion": "FIX.4.4",
   "dictionaryOverlay": {
     "fields": {
@@ -402,6 +402,478 @@
           "value": "1"
         }
       ]
+    },
+    "flow-market": {
+      "label": "Flow: Market",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "1"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-stop": {
+      "label": "Flow: Stop",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "3"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 99,
+          "slot": {
+            "tag": 99,
+            "label": "Stop price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-stop-limit": {
+      "label": "Flow: Stop limit",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "4"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 99,
+          "slot": {
+            "tag": 99,
+            "label": "Stop price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Limit price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-iceberg": {
+      "label": "Flow: Iceberg / reserve",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Limit price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 111,
+          "slot": {
+            "tag": 111,
+            "label": "Display quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 110,
+          "slot": {
+            "tag": 110,
+            "label": "Minimum fill quantity",
+            "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-peg-mid": {
+      "label": "Flow: Mid-price peg",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "P"
+        },
+        {
+          "op": "set",
+          "tag": 18,
+          "value": "M"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 211,
+          "slot": {
+            "tag": 211,
+            "label": "Peg offset",
+            "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-moc": {
+      "label": "Flow: Market on close",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "1"
+        },
+        {
+          "op": "set",
+          "tag": 59,
+          "value": "7"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        }
+      ]
+    },
+    "flow-limit-gtd": {
+      "label": "Flow: Limit GTD",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "set",
+          "tag": 59,
+          "value": "6"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Limit price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 432,
+          "slot": {
+            "tag": 432,
+            "label": "Expire date (YYYYMMDD)",
+            "type": "string",
+            "required": true
+          }
+        }
+      ]
+    },
+    "flow-broker-algo": {
+      "label": "Flow: Broker algo (847)",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Limit price",
+            "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 847,
+          "slot": {
+            "tag": 847,
+            "label": "Target strategy",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 849,
+          "slot": {
+            "tag": 849,
+            "label": "Participation rate (%)",
+            "type": "decimal"
+          }
+        }
+      ]
     }
   },
   "systems": [
@@ -464,9 +936,57 @@
       "required": true,
       "options": [
         {
+          "id": "market",
+          "label": "Market",
+          "fragment": "flow-market",
+          "msgType": "D"
+        },
+        {
           "id": "limit",
-          "label": "Plain limit",
+          "label": "Limit",
           "fragment": "flow-limit",
+          "msgType": "D"
+        },
+        {
+          "id": "limit-gtd",
+          "label": "Limit (GTD)",
+          "fragment": "flow-limit-gtd",
+          "msgType": "D"
+        },
+        {
+          "id": "stop",
+          "label": "Stop",
+          "fragment": "flow-stop",
+          "msgType": "D"
+        },
+        {
+          "id": "stop-limit",
+          "label": "Stop limit",
+          "fragment": "flow-stop-limit",
+          "msgType": "D"
+        },
+        {
+          "id": "iceberg",
+          "label": "Iceberg / reserve",
+          "fragment": "flow-iceberg",
+          "msgType": "D"
+        },
+        {
+          "id": "peg-mid",
+          "label": "Mid-price peg",
+          "fragment": "flow-peg-mid",
+          "msgType": "D"
+        },
+        {
+          "id": "moc",
+          "label": "Market on close",
+          "fragment": "flow-moc",
+          "msgType": "D"
+        },
+        {
+          "id": "broker-algo",
+          "label": "Broker algo (847)",
+          "fragment": "flow-broker-algo",
           "msgType": "D"
         },
         {
