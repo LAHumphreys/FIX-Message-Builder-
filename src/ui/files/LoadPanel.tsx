@@ -1,16 +1,22 @@
 import { useRef, useState, type DragEvent } from 'react';
-import { parseInstrumentDb, parseProfile } from '../../engine/index.ts';
+import {
+  parseInstrumentDb,
+  parseProfile,
+  parseScenario,
+  scenarioCompatibility,
+} from '../../engine/index.ts';
 import { useAppDispatch, useAppState } from '../state/context.ts';
 import demoProfileText from '../../demo/demo.profile.json?raw';
 import demoInstrumentsText from '../../demo/demo.instruments.json?raw';
 
-/** Route a dropped/picked file by shape: profile vs instrument DB (§3.9). */
-function classify(text: string, filename: string): 'profile' | 'instruments' {
+/** Route a dropped/picked file by shape (§3.9). */
+function classify(text: string, filename: string): 'profile' | 'instruments' | 'scenario' {
   if (/\.csv$/i.test(filename)) return 'instruments';
   try {
     const parsed: unknown = JSON.parse(text);
-    if (typeof parsed === 'object' && parsed !== null && 'instruments' in parsed) {
-      return 'instruments';
+    if (typeof parsed === 'object' && parsed !== null) {
+      if ('instruments' in parsed) return 'instruments';
+      if ('mode' in parsed || 'renderer' in parsed || 'slotValues' in parsed) return 'scenario';
     }
   } catch {
     return 'instruments'; // non-JSON → try the CSV instrument path
@@ -34,10 +40,28 @@ export function LoadPanel() {
     dispatch({ type: 'instruments-loaded', db, issues });
   }
 
+  function loadScenarioText(text: string) {
+    if (!profile) return;
+    const { scenario, issues } = parseScenario(text);
+    if (!scenario) return;
+    const findings = [
+      ...issues.map((i) => ({
+        ruleId: 'scenario-load',
+        severity: i.severity,
+        path: i.path,
+        message: i.message,
+      })),
+      ...scenarioCompatibility(scenario, profile),
+    ];
+    dispatch({ type: 'apply-scenario', scenario, findings });
+  }
+
   async function onFiles(files: FileList | null) {
     for (const file of files ?? []) {
       const text = await file.text();
-      if (classify(text, file.name) === 'instruments') loadInstrumentsText(text);
+      const kind = classify(text, file.name);
+      if (kind === 'instruments') loadInstrumentsText(text);
+      else if (kind === 'scenario') loadScenarioText(text);
       else loadProfileText(text);
     }
   }

@@ -3,9 +3,9 @@ import type { DerivedBuild } from '../state/derive.ts';
 const ORDER = { error: 0, warning: 1, info: 2 } as const;
 
 export function FindingsPanel({ derived }: { derived: DerivedBuild }) {
-  if (!derived.result) return null;
+  if (!derived.resolved) return null;
   const findings = [...derived.findings].sort((a, b) => ORDER[a.severity] - ORDER[b.severity]);
-  const notices = derived.result.notices;
+  const notices = derived.notices;
 
   return (
     <section className="panel">

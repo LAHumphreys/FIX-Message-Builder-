@@ -1,0 +1,43 @@
+{
+  "fixVersion": "FIX.4.4",
+  "mode": "list",
+  "name": "Order list of 3",
+  "profile": {
+    "name": "Meridian Demo",
+    "version": "0.4.0"
+  },
+  "renderer": {
+    "kind": "annotated"
+  },
+  "rows": [
+    {
+      "instrument": "MERBANK",
+      "slotValues": {
+        "38": "100",
+        "44": "25.10"
+      }
+    },
+    {
+      "instrument": "CORIUM",
+      "slotValues": {
+        "38": "200",
+        "44": "8.40"
+      }
+    },
+    {
+      "instrument": "THISTLE",
+      "slotValues": {
+        "38": "150",
+        "44": "14.25"
+      }
+    }
+  ],
+  "schemaVersion": 1,
+  "selections": {
+    "flow": "basket"
+  },
+  "slotValues": {
+    "54": "1"
+  },
+  "systemId": "alpha-uat"
+}

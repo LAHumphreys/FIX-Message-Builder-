@@ -76,12 +76,16 @@ function SlotInput({ slot, derived }: { slot: ResolvedSlot; derived: DerivedBuil
 }
 
 export function SlotForm({ derived }: { derived: DerivedBuild }) {
-  const slots = derived.result?.slots ?? [];
-  if (!derived.result) return null;
+  const slots = derived.slots;
+  if (!derived.resolved) return null;
+  const grouped = derived.mode === 'batch' || derived.mode === 'list';
 
   return (
     <section className="panel">
-      <div className="panel-header">Parameters</div>
+      <div className="panel-header">
+        Parameters
+        {grouped && <span className="hint">shared defaults — rows override</span>}
+      </div>
       <div className="panel-body">
         {slots.length === 0 ? (
           <p className="empty-note" style={{ padding: 0 }}>

@@ -2,6 +2,7 @@ import { availableDimensions } from '../../engine/index.ts';
 import { useAppDispatch, useAppState } from '../state/context.ts';
 import type { DerivedBuild } from '../state/derive.ts';
 import { InstrumentPicker } from './InstrumentPicker.tsx';
+import { ModeTabs } from './ModeTabs.tsx';
 
 /**
  * Target system first (it drives availability filtering of everything else),
@@ -74,6 +75,7 @@ export function Selectors({ derived }: { derived: DerivedBuild }) {
             </div>
           )
         )}
+        <ModeTabs derived={derived} />
       </div>
     </section>
   );

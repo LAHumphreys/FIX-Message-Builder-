@@ -630,3 +630,52 @@ select.input {
   color: var(--text-dim);
   white-space: nowrap;
 }
+
+/* --- Grid tables ---------------------------------------------------------- */
+
+.grid-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--fs-sm);
+}
+
+.grid-table th {
+  text-align: left;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  color: var(--text-dim);
+  padding: 0.25rem 0.4rem;
+  border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap;
+}
+
+.grid-table th .tag {
+  color: var(--tag-num);
+  font-weight: 400;
+}
+
+.grid-table td {
+  padding: 0.15rem 0.25rem;
+  border-bottom: 1px solid var(--border);
+  min-width: 5rem;
+}
+
+.grid-table td.rownum {
+  color: var(--text-faint);
+  font-size: var(--fs-xs);
+  min-width: 1.5rem;
+  text-align: right;
+}
+
+.grid-table td.row-actions {
+  white-space: nowrap;
+  min-width: auto;
+}
+
+.grid-table .instrument-cell {
+  min-width: 9rem;
+}
+
+.typeahead.compact .input {
+  padding: 0.18rem 0.4rem;
+}

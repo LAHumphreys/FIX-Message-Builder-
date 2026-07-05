@@ -4,6 +4,9 @@ import { useBuildResult } from './state/derive.ts';
 import { LoadPanel } from './files/LoadPanel.tsx';
 import { Selectors } from './builder/Selectors.tsx';
 import { SlotForm } from './builder/SlotForm.tsx';
+import { BatchGrid } from './grid/BatchGrid.tsx';
+import { LegGrid } from './grid/LegGrid.tsx';
+import { ScenarioBar } from './scenario/ScenarioBar.tsx';
 import { OutputPanel } from './output/OutputPanel.tsx';
 import { FindingsPanel } from './validation/FindingsPanel.tsx';
 
@@ -41,10 +44,13 @@ function Workbench() {
     <main className="app-main">
       <div className="rail">
         <LoadPanel />
+        <ScenarioBar derived={derived} />
       </div>
       <div className="col col-center">
         <Selectors derived={derived} />
         <SlotForm derived={derived} />
+        <BatchGrid derived={derived} />
+        <LegGrid derived={derived} />
       </div>
       <div className="col">
         <OutputPanel derived={derived} />

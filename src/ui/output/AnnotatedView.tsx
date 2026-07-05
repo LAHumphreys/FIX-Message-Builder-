@@ -1,4 +1,9 @@
-import { buildAnnotatedLines, type Finding, type Provenance } from '../../engine/index.ts';
+import {
+  buildAnnotatedLines,
+  type Finding,
+  type FixMessage,
+  type Provenance,
+} from '../../engine/index.ts';
 import type { DerivedBuild } from '../state/derive.ts';
 
 function provenanceTitle(p: Provenance): string {
@@ -17,9 +22,15 @@ const SEV_COLOR: Record<string, string> = {
   info: 'var(--sev-info)',
 };
 
-export function AnnotatedView({ derived }: { derived: DerivedBuild }) {
-  if (!derived.result || !derived.resolved) return null;
-  const lines = buildAnnotatedLines(derived.result.message, derived.resolved.dictionary);
+export function AnnotatedView({
+  derived,
+  message,
+}: {
+  derived: DerivedBuild;
+  message: FixMessage;
+}) {
+  if (!derived.resolved) return null;
+  const lines = buildAnnotatedLines(message, derived.resolved.dictionary);
   const findingsByPath = new Map<string, Finding>();
   for (const f of derived.findings) {
     if (f.path && !findingsByPath.has(f.path)) findingsByPath.set(f.path, f);

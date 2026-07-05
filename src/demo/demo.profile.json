@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "Meridian Demo",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "fixVersion": "FIX.4.4",
   "dictionaryOverlay": {
     "fields": {
@@ -22,7 +22,8 @@
     }
   },
   "templates": {
-    "D": "tmpl-new-order-single"
+    "D": "tmpl-new-order-single",
+    "E:entry": "tmpl-list-entry"
   },
   "generators": {
     "clOrdId": {
@@ -295,6 +296,112 @@
           }
         }
       ]
+    },
+    "flow-basket": {
+      "label": "Flow: Basket",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "setGenerated",
+          "tag": 66,
+          "generator": "listId"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Price",
+            "type": "decimal"
+          }
+        }
+      ]
+    },
+    "flow-multileg": {
+      "label": "Flow: Multileg",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Package price",
+            "type": "decimal"
+          }
+        }
+      ]
+    },
+    "tmpl-list-entry": {
+      "label": "List entry base",
+      "ops": [
+        {
+          "op": "setGenerated",
+          "tag": 11,
+          "generator": "clOrdId"
+        },
+        {
+          "op": "set",
+          "tag": 21,
+          "value": "1"
+        }
+      ]
     }
   },
   "systems": [
@@ -325,7 +432,16 @@
             "enums": {
               "X": "At Omega Close"
             }
-          }
+          },
+          "7001": [
+            "LegacySliceMode",
+            "INT",
+            {
+              "1": "Clock Slice",
+              "2": "Volume Slice"
+            }
+          ],
+          "7003": ["LegacySliceIntervalSecs", "INT"]
         }
       },
       "validationPolicy": {
@@ -359,6 +475,22 @@
           "fragment": "flow-slicer",
           "msgType": "D",
           "availableOn": ["cap:slicer-v2"]
+        },
+        {
+          "id": "basket",
+          "label": "Basket",
+          "fragment": "flow-basket",
+          "msgType": "D",
+          "modes": ["batch", "list"],
+          "availableOn": ["cap:lists", "omega-legacy"]
+        },
+        {
+          "id": "multileg",
+          "label": "Multileg strategy",
+          "fragment": "flow-multileg",
+          "msgType": "AB",
+          "modes": ["multileg"],
+          "availableOn": ["cap:multileg"]
         }
       ]
     },
@@ -584,6 +716,23 @@
           ]
         }
       ]
+    }
+  },
+  "renderers": {
+    "json": {
+      "omega-gateway": {
+        "keyStyle": "name",
+        "groupKey": "countName",
+        "emitCounts": false,
+        "typedValues": true,
+        "omitTags": [8, 9, 10, 34, 49, 52, 56],
+        "envelope": {
+          "message": {
+            "target": "omega-gateway"
+          },
+          "messageKey": "order"
+        }
+      }
     }
   }
 }
