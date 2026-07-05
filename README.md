@@ -34,7 +34,7 @@ GitHub Pages serves two channels from the one site this repo gets:
 | `main` | `https://<owner>.github.io/<repo>/`     | Stable                                       |
 | `dev`  | `https://<owner>.github.io/<repo>/dev/` | Rapid iteration; merge to `main` when stable |
 
-A push to either branch rebuilds and redeploys both (a Pages deployment always replaces the whole site), each with the privacy check applied.
+A push to either branch rebuilds and redeploys both (a Pages deployment always replaces the whole site), each with the privacy check applied. `main` is protected and only changes via pull request from `dev`; the full branch model, merge policy, and repository-settings checklist are in [docs/WORKFLOW.md](docs/WORKFLOW.md).
 
 ## Development
 
@@ -44,6 +44,8 @@ npm run dev       # dev server
 npm run test      # unit tests (npm run test:watch / test:coverage)
 npm run verify    # everything CI runs: typecheck, lint, format, test, build, privacy check
 ```
+
+A [devcontainer](.devcontainer/devcontainer.json) is included, so **GitHub Codespaces** works out of the box: create a codespace on `dev`, run `npm run dev`, and open the forwarded port — no local setup needed. Handy for development from a phone or tablet.
 
 ## Roadmap
 
