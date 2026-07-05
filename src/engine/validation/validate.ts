@@ -51,6 +51,26 @@ function pathFor(prefix: string, tag: number, occurrence: number): string {
   return prefix === '' ? key : `${prefix}/${key}`;
 }
 
+/**
+ * Standard FIX conditional requirements: when a field has a trigger value,
+ * at least one of the listed tags must accompany it at the same level.
+ * (Severity remappable per profile/system via the 'conditional-required'
+ * rule id.)
+ */
+const CONDITIONAL_REQUIREMENTS: readonly {
+  readonly tag: number;
+  readonly value: string;
+  readonly anyOf: readonly number[];
+  readonly label: string;
+}[] = [
+  {
+    tag: 59,
+    value: '6',
+    anyOf: [432, 126],
+    label: 'TimeInForce(59)=6 (Good Till Date) needs ExpireDate(432) or ExpireTime(126)',
+  },
+];
+
 /** Integer-valued FIX types. */
 const INT_TYPES = new Set(['INT', 'LENGTH', 'SEQNUM', 'NUMINGROUP', 'DAYOFMONTH']);
 const DECIMAL_TYPES = new Set(['QTY', 'PRICE', 'FLOAT', 'AMT', 'PERCENTAGE', 'PRICEOFFSET']);
@@ -189,6 +209,26 @@ function validateLevel(
         validateLevel(ctx, entry, groupDef?.items, entryPrefix);
         if (groupDef) checkEntryOrder(ctx, entry, groupDef, entryPrefix);
       });
+    }
+  }
+
+  // conditional-required at this level.
+  const levelTags = new Set(fields.map((f) => (f.kind === 'field' ? f.tag : f.countTag)));
+  for (const field of fields) {
+    if (field.kind !== 'field') continue;
+    for (const rule of CONDITIONAL_REQUIREMENTS) {
+      if (field.tag !== rule.tag || field.value !== rule.value) continue;
+      if (!rule.anyOf.some((t) => levelTags.has(t))) {
+        const occurrence = 0;
+        report(
+          ctx,
+          'conditional-required',
+          pathFor(prefix, field.tag, occurrence),
+          rule.label,
+          field.tag,
+          field.provenance
+        );
+      }
     }
   }
 

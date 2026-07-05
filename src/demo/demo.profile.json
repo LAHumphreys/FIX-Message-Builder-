@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "Meridian Demo",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "fixVersion": "FIX.4.4",
   "dictionaryOverlay": {
     "fields": {
@@ -835,7 +835,16 @@
             "tag": 432,
             "label": "Expire date (YYYYMMDD)",
             "type": "string",
-            "required": true
+            "pattern": "^\\\\d{8}$"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 126,
+          "slot": {
+            "tag": 126,
+            "label": "Expire time (UTC, YYYYMMDD-HH:MM:SS)",
+            "type": "timestamp"
           }
         }
       ]

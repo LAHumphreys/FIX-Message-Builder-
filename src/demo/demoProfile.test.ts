@@ -90,6 +90,35 @@ describe('basket flows: per-row order types (mixed baskets)', () => {
   });
 });
 
+describe('good-till-date expiry handling', () => {
+  it('GTD flow accepts an expiry time instead of a date', () => {
+    const result = buildSingle(
+      resolved,
+      {
+        selections: { flow: 'limit-gtd' },
+        slotValues: { '38': '100', '44': '25.10', '126': '20261230-16:30:00' },
+      },
+      env()
+    );
+    expect(tagValue(result, 59)).toBe('6');
+    expect(tagValue(result, 126)).toBe('20261230-16:30:00');
+    const findings = validateMessage(result.message, resolved.dictionary, resolved.policyChain);
+    expect(findings.filter((f) => f.ruleId === 'conditional-required')).toEqual([]);
+  });
+
+  it('choosing TIF=6 in a flow without expiry slots surfaces the conditional warning', () => {
+    const result = buildSingle(
+      resolved,
+      { selections: { flow: 'limit' }, slotValues: { '38': '100', '44': '25.10', '59': '6' } },
+      env()
+    );
+    const findings = validateMessage(result.message, resolved.dictionary, resolved.policyChain);
+    expect(findings.filter((f) => f.ruleId === 'conditional-required')).toMatchObject([
+      { tag: 59 },
+    ]);
+  });
+});
+
 describe('standard order-type flows build their signature tags', () => {
   const cases = [
     {

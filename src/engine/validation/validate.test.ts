@@ -197,6 +197,42 @@ describe('group rules', () => {
   });
 });
 
+describe('conditional-required (GTD expiry)', () => {
+  const base = [field(11, 'X', src), field(49, 'ME', src), field(54, '1', src)];
+
+  it.each([
+    { label: 'TIF=6 with no expiry triggers', extra: [field(59, '6', src)], count: 1 },
+    {
+      label: 'TIF=6 with ExpireDate(432) is satisfied',
+      extra: [field(59, '6', src), field(432, '20261230', src)],
+      count: 0,
+    },
+    {
+      label: 'TIF=6 with ExpireTime(126) is satisfied',
+      extra: [field(59, '6', src), field(126, '20261230-16:30:00', src)],
+      count: 0,
+    },
+    { label: 'other TIF values do not trigger', extra: [field(59, '0', src)], count: 0 },
+  ])('$label', ({ extra, count }) => {
+    const findings = validateMessage(msgD([...base, ...extra]), dict).filter(
+      (f) => f.ruleId === 'conditional-required'
+    );
+    expect(findings).toHaveLength(count);
+    if (count > 0) {
+      expect(findings[0]).toMatchObject({ tag: 59, severity: 'warning' });
+      expect(findings[0]!.message).toContain('ExpireDate(432)');
+    }
+  });
+
+  it('is remappable like any other rule', () => {
+    const fields = [...base, field(59, '6', src)];
+    const muted = validateMessage(msgD(fields), dict, [
+      { rules: { 'conditional-required': 'off' } },
+    ]).filter((f) => f.ruleId === 'conditional-required');
+    expect(muted).toHaveLength(0);
+  });
+});
+
 describe('duplicate-tag and header-trailer-order', () => {
   it('flags duplicate simple tags at one level', () => {
     const msg = msgD([field(54, '1', src), field(49, 'ME', src), field(54, '2', src)]);

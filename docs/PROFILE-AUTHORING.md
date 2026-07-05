@@ -350,6 +350,40 @@ add/remove entries interactively. Two working approaches:
 
 Prefer B; fall back to C1/C2 for true repeating groups.
 
+### Conditionally-required parameters (GTD expiry and similar)
+
+When an enum choice implies extra fields (the classic case: TimeInForce
+`59=6` "Good Till Date" needs `ExpireDate(432)` or `ExpireTime(126)`), give
+the flow the dependent slots as OPTIONAL fields so the user can fill either:
+
+```json
+[
+  { "op": "set", "tag": 59, "value": "6" },
+  {
+    "op": "slot",
+    "tag": 432,
+    "slot": {
+      "tag": 432,
+      "label": "Expire date (YYYYMMDD)",
+      "type": "string",
+      "pattern": "^\\d{8}$"
+    }
+  },
+  {
+    "op": "slot",
+    "tag": 126,
+    "slot": { "tag": 126, "label": "Expire time (UTC, YYYYMMDD-HH:MM:SS)", "type": "timestamp" }
+  }
+]
+```
+
+Prefer a dedicated flow option ("Limit GTD") that hard-sets the TIF and
+carries its dependent slots, over adding rarely-used slots to every flow.
+The app has a built-in `conditional-required` validation rule for the
+standard 59=6 case: picking Good Till Date anywhere without 432/126 shows a
+warning (mutable via the validation policy like any rule). Empty optional
+slots emit no tag, so unused expiry fields never pollute the message.
+
 ### Order types in basket/list flows
 
 In `batch` and `list` modes every slot becomes a **grid column** with

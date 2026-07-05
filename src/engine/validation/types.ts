@@ -7,6 +7,7 @@ export type Severity = 'error' | 'warning' | 'info' | 'off';
 
 export const RULE_IDS = [
   'required-missing',
+  'conditional-required',
   'unknown-tag',
   'enum-unknown',
   'type-mismatch',
@@ -32,6 +33,7 @@ export interface Finding {
 /** Default severities: standards violations warn; internal contradictions error. */
 export const DEFAULT_SEVERITIES: Readonly<Record<RuleId, Severity>> = {
   'required-missing': 'warning',
+  'conditional-required': 'warning',
   'unknown-tag': 'warning',
   'enum-unknown': 'warning',
   'type-mismatch': 'warning',
