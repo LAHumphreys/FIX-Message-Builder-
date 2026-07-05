@@ -47,6 +47,11 @@ Everything below lives in the GitHub UI and cannot be configured from a clone.
 
 1. **Settings → Pages → Source:** "GitHub Actions".
 2. **Settings → General → Default branch:** `main`.
+3. **Settings → Environments → `github-pages` → Deployment branches and
+   tags:** add a rule for `dev` alongside `main`. Enabling Pages creates
+   this environment allowing only the default branch to deploy; without the
+   extra rule, `dev` pushes fail with "not allowed to deploy to github-pages
+   due to environment protection rules".
 
 ### Branch protection for `main`
 
