@@ -35,6 +35,8 @@ export function reducer(state: AppState, action: Action): AppState {
         omitLengthAndChecksum: state.omitLengthAndChecksum,
         instrumentDb: state.instrumentDb,
         instrumentDbIssues: state.instrumentDbIssues,
+        hostOrigin: state.hostOrigin,
+        transportLog: state.transportLog,
         profile: action.profile,
         profileIssues: action.issues,
         systemId: action.profile.systems[0]?.id,
@@ -105,6 +107,39 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, jsonMapping: action.mapping };
     case 'set-scenario-name':
       return { ...state, scenarioName: action.name };
+    case 'host-connected':
+      return state.hostOrigin === action.origin ? state : { ...state, hostOrigin: action.origin };
+    case 'transport-sent':
+      return {
+        ...state,
+        transportLog: [
+          {
+            id: action.id,
+            summary: action.summary,
+            sentAt: action.sentAt,
+            state: 'pending' as const,
+          },
+          ...state.transportLog,
+        ].slice(0, 50),
+      };
+    case 'transport-response':
+      return {
+        ...state,
+        transportLog: state.transportLog.map((entry) =>
+          entry.id === action.id
+            ? {
+                ...entry,
+                state: action.ok ? ('ok' as const) : ('error' as const),
+                ...(action.status !== undefined ? { status: action.status } : {}),
+                ...(action.body !== undefined ? { body: action.body } : {}),
+                ...(action.error !== undefined ? { error: action.error } : {}),
+                ...(action.timingMs !== undefined ? { timingMs: action.timingMs } : {}),
+              }
+            : entry
+        ),
+      };
+    case 'transport-clear':
+      return { ...state, transportLog: [] };
     case 'apply-scenario': {
       const s = action.scenario;
       return {

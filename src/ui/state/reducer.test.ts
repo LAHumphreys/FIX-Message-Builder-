@@ -46,6 +46,27 @@ describe('reducer', () => {
     expect(cleared.slotValues).toEqual({});
   });
 
+  it('transport lifecycle: connect, send, respond, clear', () => {
+    let s = reducer(initialState, { type: 'host-connected', origin: 'https://intranet.example' });
+    expect(s.hostOrigin).toBe('https://intranet.example');
+    s = reducer(s, { type: 'transport-sent', id: 'r1', summary: '1 × 35=D → UAT', sentAt: 123 });
+    expect(s.transportLog).toMatchObject([{ id: 'r1', state: 'pending' }]);
+    s = reducer(s, {
+      type: 'transport-response',
+      id: 'r1',
+      ok: true,
+      status: 202,
+      body: { ack: true },
+      timingMs: 41,
+    });
+    expect(s.transportLog).toMatchObject([
+      { id: 'r1', state: 'ok', status: 202, body: { ack: true }, timingMs: 41 },
+    ]);
+    const failed = reducer(s, { type: 'transport-response', id: 'nope', ok: false });
+    expect(failed.transportLog).toEqual(s.transportLog); // unknown ids ignored
+    expect(reducer(s, { type: 'transport-clear' }).transportLog).toEqual([]);
+  });
+
   it('regenerate bumps the build nonce only', () => {
     const next = reducer(initialState, { type: 'regenerate' });
     expect(next.buildNonce).toBe(initialState.buildNonce + 1);

@@ -125,6 +125,7 @@ export function validateProfile(raw: unknown): ProfileLoadResult {
         ...(isRecord(s.validationPolicy)
           ? { validationPolicy: s.validationPolicy as NonNullable<SystemDef['validationPolicy']> }
           : {}),
+        ...(s.transportHints !== undefined ? { transportHints: s.transportHints } : {}),
       });
     });
     // Referential checks

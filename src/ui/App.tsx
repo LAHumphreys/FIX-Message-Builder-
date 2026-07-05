@@ -9,6 +9,8 @@ import { LegGrid } from './grid/LegGrid.tsx';
 import { ScenarioBar } from './scenario/ScenarioBar.tsx';
 import { OutputPanel } from './output/OutputPanel.tsx';
 import { FindingsPanel } from './validation/FindingsPanel.tsx';
+import { HostBridge } from './transport/HostBridge.tsx';
+import { TransportPanel } from './transport/TransportPanel.tsx';
 
 type Theme = 'system' | 'light' | 'dark';
 
@@ -42,6 +44,7 @@ function Workbench() {
   const derived = useBuildResult();
   return (
     <main className="app-main">
+      <HostBridge />
       <div className="rail">
         <LoadPanel />
         <ScenarioBar derived={derived} />
@@ -54,6 +57,7 @@ function Workbench() {
       </div>
       <div className="col">
         <OutputPanel derived={derived} />
+        <TransportPanel derived={derived} />
         <FindingsPanel derived={derived} />
       </div>
     </main>

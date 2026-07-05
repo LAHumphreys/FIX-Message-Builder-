@@ -679,3 +679,37 @@ select.input {
 .typeahead.compact .input {
   padding: 0.18rem 0.4rem;
 }
+
+/* --- Transport log --------------------------------------------------------- */
+
+.transport-entry summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  list-style: none;
+}
+
+.transport-entry summary::-webkit-details-marker {
+  display: none;
+}
+
+.transport-entry summary:hover {
+  background: var(--bg-hover);
+}
+
+.transport-entry.ok summary {
+  border-left: 3px solid var(--accent);
+}
+
+.transport-entry.error summary {
+  border-left: 3px solid var(--sev-error);
+  background: var(--sev-error-bg);
+}
+
+.transport-entry.pending summary {
+  border-left: 3px solid var(--border-strong);
+  color: var(--text-dim);
+}

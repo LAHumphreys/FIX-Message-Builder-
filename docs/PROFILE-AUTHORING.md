@@ -524,6 +524,10 @@ capabilities do NOT merge: list every capability the child has.
 - `convention` — name of an identity convention (§10).
 - `dictionaryOverlay` — per-box tag quirks (same format as §4).
 - `validationPolicy` — per-box rule muting (§12).
+- `transportHints` — optional, any JSON shape: per-system routing data for
+  the internal send integration (see the repo's docs/INTERNAL-HOST.md). The
+  builder never interprets it; it is handed verbatim to the internal host
+  page with every send. Inherits through `extends` like other properties.
 
 ---
 

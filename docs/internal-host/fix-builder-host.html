@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FIX Message Builder — internal host</title>
+    <!--
+      ═══════════════════════════════════════════════════════════════════════
+      INTERNAL HOST PAGE SKELETON — copy this file into your PRIVATE repo.
+
+      What it does:
+        1. Embeds the FIX Message Builder in an iframe.
+        2. Loads your profile / instrument DB and injects them into the
+           builder (postMessage) — colleagues open ONE url, everything is
+           preloaded, no file-picking.
+        3. Receives "send" requests from the builder, calls YOUR endpoint,
+           and posts the response back for display in the builder's
+           Transport panel.
+
+      There are exactly THREE TODO blocks below. Everything else works as-is.
+      Test it first without any TODOs filled: sends fail with a clear
+      "TODO: implement deliver()" response, proving the plumbing works.
+
+      This file is plain HTML+JS: no build step, no dependencies. Host it on
+      any internal static server next to your profile files:
+
+          internal-tools/
+          ├── fix-builder-host.html      (this file)
+          ├── work.profile.json          (from your private repo)
+          └── instruments.json           (or .csv)
+
+      Full protocol reference: docs/INTERNAL-HOST.md in the public repo.
+      ═══════════════════════════════════════════════════════════════════════
+    -->
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: system-ui, sans-serif;
+        background: #0e1216;
+        color: #d7dee6;
+      }
+      header {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        background: #191f26;
+        border-bottom: 1px solid #2c3540;
+        display: flex;
+        gap: 1rem;
+        align-items: baseline;
+      }
+      header .tag {
+        color: #3fbfae;
+        font-weight: 700;
+      }
+      header #status {
+        margin-left: auto;
+        color: #93a0ad;
+      }
+      iframe {
+        flex: 1;
+        border: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span class="tag">FIX BUILDER — INTERNAL</span>
+      <span id="status">starting…</span>
+    </header>
+    <iframe id="builder" title="FIX Message Builder"></iframe>
+
+    <script>
+      'use strict';
+
+      /* ════════════════════ TODO 1: WHERE IS THE BUILDER? ════════════════════
+         Point this at your internally hosted copy of the app (recommended:
+         pin a copy of the public site's files on your intranet), or at the
+         public Pages URL if your network policy allows it. */
+      const BUILDER_URL = './builder/'; // e.g. 'https://intranet.example/fix-builder/'
+
+      /* ════════════════════ TODO 2: WHERE ARE YOUR FILES? ════════════════════
+         Paths (relative to this page) of the profile and instrument DB from
+         your private repo. Set to null to skip injection (users can still
+         drag-drop files inside the builder). A *.scenario.json can also be
+         preloaded to give first-time users a working starting point. */
+      const PROFILE_URL = './work.profile.json';
+      const INSTRUMENTS_URL = './instruments.json'; // .json or .csv
+      const STARTER_SCENARIO_URL = null; // e.g. './starter.scenario.json'
+
+      /* ════════════════════ TODO 3: HOW DO MESSAGES GET SENT? ═══════════════
+         `request` is the builder's send payload:
+           request.system          – system id selected in the builder
+           request.transportHints  – the profile's per-system routing data
+           request.messages[i].json – message through your JSON mapping
+           request.messages[i].wire – same message as pipe tag=value (debug)
+         Return { ok, status?, body? }; throw (or return ok:false) on failure.
+         The full object you return lands in the builder's Transport panel. */
+      async function deliver(request) {
+        // ── EXAMPLE (replace with your real endpoint + shape): ──────────────
+        // const response = await fetch('https://YOUR-INTERNAL-ENDPOINT/route', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({
+        //     target: request.transportHints,        // or request.system
+        //     orders: request.messages.map((m) => m.json),
+        //   }),
+        // });
+        // const body = await response.json().catch(() => response.statusText);
+        // return { ok: response.ok, status: response.status, body };
+        // ────────────────────────────────────────────────────────────────────
+        throw new Error(
+          'TODO: implement deliver() in fix-builder-host.html for system ' + request.system
+        );
+      }
+
+      /* ═══════════════ plumbing below — no changes usually needed ═══════════ */
+
+      const builder = document.getElementById('builder');
+      const statusEl = document.getElementById('status');
+      const builderOrigin = new URL(BUILDER_URL, location.href).origin;
+      builder.src = BUILDER_URL;
+
+      function setStatus(text) {
+        statusEl.textContent = text;
+      }
+
+      async function fetchText(url) {
+        if (!url) return undefined;
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) throw new Error(url + ' → HTTP ' + response.status);
+        return await response.text();
+      }
+
+      async function sendConfig(targetOrigin) {
+        try {
+          const [profile, instruments, scenario] = await Promise.all([
+            fetchText(PROFILE_URL),
+            fetchText(INSTRUMENTS_URL),
+            fetchText(STARTER_SCENARIO_URL),
+          ]);
+          const config = { type: 'fixbuilder:config' };
+          if (profile !== undefined) config.profile = profile;
+          if (instruments !== undefined) config.instruments = instruments;
+          if (scenario !== undefined) config.scenario = scenario;
+          builder.contentWindow.postMessage(config, targetOrigin);
+          setStatus('profile injected · ready');
+        } catch (err) {
+          setStatus('config load failed: ' + err.message + ' (drag-drop still works)');
+        }
+      }
+
+      window.addEventListener('message', (event) => {
+        if (event.source !== builder.contentWindow) return;
+        if (builderOrigin !== 'null' && event.origin !== builderOrigin) return;
+        const data = event.data;
+        if (!data || typeof data.type !== 'string') return;
+
+        if (data.type === 'fixbuilder:ready') {
+          void sendConfig(event.origin);
+          return;
+        }
+
+        if (data.type === 'fixbuilder:send') {
+          const started = performance.now();
+          setStatus('sending ' + data.requestId + '…');
+          Promise.resolve()
+            .then(() => deliver(data))
+            .then((result) => ({
+              ok: result && result.ok !== false,
+              status: result && result.status,
+              body: result && result.body !== undefined ? result.body : result,
+            }))
+            .catch((err) => ({ ok: false, error: String(err && err.message ? err.message : err) }))
+            .then((outcome) => {
+              builder.contentWindow.postMessage(
+                {
+                  type: 'fixbuilder:response',
+                  requestId: data.requestId,
+                  timingMs: Math.round(performance.now() - started),
+                  ...outcome,
+                },
+                event.origin
+              );
+              setStatus(outcome.ok ? 'last send ok' : 'last send FAILED — see Transport panel');
+            });
+        }
+      });
+    </script>
+  </body>
+</html>

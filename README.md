@@ -26,6 +26,7 @@ The public repository contains a generic engine and UI with **no knowledge of an
 - **Renderers**: tag=value with correct header ordering and BodyLength/CheckSum (known-answer tested against a reference implementation), a profile-configurable JSON mapping (key styles, group shapes, typed values, envelopes), and the annotated view.
 - **Scenarios**: the whole builder state round-trips losslessly to a JSON file with canonical formatting and unknown-key preservation — a git-friendly replacement for static message libraries.
 - **FIX 4.2 / 4.4 / 5.0 SP2** dictionaries, converted from the QuickFIX XML specs at dev time (`scripts/convert-quickfix.mjs`) and lazy-loaded per version.
+- **Embedded mode** for internal integrations: a host page can iframe the builder, inject profile/instruments via `postMessage`, and receive send requests to deliver however it likes — the builder itself still makes zero requests. See [docs/INTERNAL-HOST.md](docs/INTERNAL-HOST.md) and the live [`host-demo.html`](host-demo.html) echo demo; a ready-to-fill host page skeleton ships in [docs/internal-host/](docs/internal-host/).
 
 JSON Schemas for the profile, scenario, and instrument-DB formats live in [docs/schemas/](docs/schemas/) for IDE autocomplete when editing by hand. **[docs/PROFILE-AUTHORING.md](docs/PROFILE-AUTHORING.md)** is a self-contained guide to building a private profile from an environment spec — written so an AI assistant (or a colleague) can produce a working config without access to this codebase.
 

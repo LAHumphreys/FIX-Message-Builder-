@@ -15,6 +15,17 @@ import type {
 
 export type OutputTab = 'annotated' | 'raw' | 'json';
 
+export interface TransportEntry {
+  readonly id: string;
+  readonly summary: string;
+  readonly sentAt: number;
+  readonly state: 'pending' | 'ok' | 'error';
+  readonly status?: number | string;
+  readonly body?: unknown;
+  readonly error?: string;
+  readonly timingMs?: number;
+}
+
 export interface AppState {
   readonly profile: Profile | undefined;
   readonly profileIssues: readonly ProfileIssue[];
@@ -40,6 +51,9 @@ export interface AppState {
   readonly jsonMapping: string | undefined;
   readonly scenarioName: string;
   readonly scenarioFindings: readonly Finding[];
+  /** Origin of the embedding host page, once its first message arrives. */
+  readonly hostOrigin: string | undefined;
+  readonly transportLog: readonly TransportEntry[];
   /** Bumped by "Regenerate": reseeds generators and refreshes timestamps. */
   readonly buildNonce: number;
 }
@@ -77,6 +91,23 @@ export type Action =
   | { readonly type: 'set-omit-length-checksum'; readonly omit: boolean }
   | { readonly type: 'set-json-mapping'; readonly mapping: string }
   | { readonly type: 'set-scenario-name'; readonly name: string }
+  | { readonly type: 'host-connected'; readonly origin: string }
+  | {
+      readonly type: 'transport-sent';
+      readonly id: string;
+      readonly summary: string;
+      readonly sentAt: number;
+    }
+  | {
+      readonly type: 'transport-response';
+      readonly id: string;
+      readonly ok: boolean;
+      readonly status?: number | string;
+      readonly body?: unknown;
+      readonly error?: string;
+      readonly timingMs?: number;
+    }
+  | { readonly type: 'transport-clear' }
   | {
       readonly type: 'apply-scenario';
       readonly scenario: Scenario;
@@ -103,5 +134,7 @@ export const initialState: AppState = {
   jsonMapping: undefined,
   scenarioName: '',
   scenarioFindings: [],
+  hostOrigin: undefined,
+  transportLog: [],
   buildNonce: 1,
 };

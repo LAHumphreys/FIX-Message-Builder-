@@ -94,6 +94,11 @@ export interface SystemDef {
   /** Identity convention reference (§3.10). */
   readonly convention?: string;
   readonly validationPolicy?: ValidationPolicy;
+  /**
+   * Opaque per-system routing data handed to the embedded-mode host page
+   * with every send (never interpreted by the builder itself).
+   */
+  readonly transportHints?: unknown;
 }
 
 export interface Profile {
@@ -155,6 +160,9 @@ export function resolveSystemDef(
       : {}),
     ...((system.validationPolicy ?? parent.validationPolicy) !== undefined
       ? { validationPolicy: (system.validationPolicy ?? parent.validationPolicy)! }
+      : {}),
+    ...((system.transportHints ?? parent.transportHints) !== undefined
+      ? { transportHints: system.transportHints ?? parent.transportHints }
       : {}),
   };
 }
