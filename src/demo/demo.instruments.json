@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "comment": "Entirely fictional demo instrument universe for the Meridian environment. Real instrument databases live in private user repos and are never shipped here.",
+  "instruments": [
+    {
+      "key": "MERBANK",
+      "name": "Meridian Bank",
+      "schemes": { "isin": "ZZ0000000013", "exchangeSymbol": "MERB", "custom:omega": "OMG-1201" },
+      "attrs": { "securityType": "CS", "currency": "ZZD", "mic": "XMER" }
+    },
+    {
+      "key": "CORIUM",
+      "name": "Corium Industries",
+      "schemes": { "isin": "ZZ0000000021", "exchangeSymbol": "CORI", "custom:omega": "OMG-1202" },
+      "attrs": { "securityType": "CS", "currency": "ZZD", "mic": "XMER" }
+    },
+    {
+      "key": "NIMBUS",
+      "name": "Nimbus Retail",
+      "schemes": { "isin": "ZZ0000000039", "exchangeSymbol": "NIMB" },
+      "attrs": {
+        "securityType": "CS",
+        "currency": "ZZD",
+        "mic": "XMER",
+        "note": "deliberately missing custom:omega to demonstrate the missing-identifier warning"
+      }
+    },
+    {
+      "key": "SOLSTICE",
+      "name": "Solstice Energy",
+      "schemes": { "isin": "ZZ0000000047", "exchangeSymbol": "SOLE", "custom:omega": "OMG-1204" },
+      "attrs": { "securityType": "CS", "currency": "ZZD", "mic": "XMER" }
+    },
+    {
+      "key": "KESTREL",
+      "name": "Kestrel Logistics",
+      "schemes": { "isin": "ZZ0000000054", "exchangeSymbol": "KSTL", "custom:omega": "OMG-1205" },
+      "attrs": { "securityType": "CS", "currency": "ZZD", "mic": "XMER" }
+    },
+    {
+      "key": "THISTLE",
+      "name": "Thistle Foods",
+      "schemes": { "isin": "ZZ0000000062", "exchangeSymbol": "THSL", "custom:omega": "OMG-1206" },
+      "attrs": { "securityType": "CS", "currency": "ZZD", "mic": "XMER" }
+    },
+    {
+      "key": "PALISADE",
+      "name": "Palisade Insurance",
+      "schemes": { "isin": "ZZ0000000070", "exchangeSymbol": "PLSD", "custom:omega": "OMG-1207" },
+      "attrs": { "securityType": "CS", "currency": "ZZD", "mic": "XMER" }
+    },
+    {
+      "key": "QUARRY",
+      "name": "Quarry Minerals",
+      "schemes": { "isin": "ZZ0000000088", "exchangeSymbol": "QRRY", "custom:omega": "OMG-1208" },
+      "attrs": { "securityType": "CS", "currency": "ZZD", "mic": "XMER" }
+    },
+    {
+      "key": "VELUM",
+      "name": "Velum Media",
+      "schemes": { "isin": "ZZ0000000096", "exchangeSymbol": "VELM", "custom:omega": "OMG-1209" },
+      "attrs": { "securityType": "CS", "currency": "ZZD", "mic": "XMER" }
+    },
+    {
+      "key": "ARBORWAY",
+      "name": "Arborway Timber",
+      "schemes": { "isin": "ZZ0000000104", "exchangeSymbol": "ARBW", "custom:omega": "OMG-1210" },
+      "attrs": { "securityType": "CS", "currency": "ZZD", "mic": "XMER" }
+    },
+    {
+      "key": "GLACIS",
+      "name": "Glacis Defence",
+      "schemes": { "isin": "ZZ0000000112", "exchangeSymbol": "GLCS", "custom:omega": "OMG-1211" },
+      "attrs": { "securityType": "CS", "currency": "ZZD", "mic": "XMER" }
+    },
+    {
+      "key": "HALCYON",
+      "name": "Halcyon Pharma",
+      "schemes": { "isin": "ZZ0000000120", "exchangeSymbol": "HALC", "custom:omega": "OMG-1212" },
+      "attrs": { "securityType": "CS", "currency": "ZZD", "mic": "XMER" }
+    },
+    {
+      "key": "FCOR-U6",
+      "name": "Corium Index Future Sep26",
+      "schemes": { "exchangeSymbol": "FCORU6", "custom:omega": "OMG-FCOR-U6" },
+      "attrs": {
+        "securityType": "FUT",
+        "currency": "ZZD",
+        "mic": "XMER",
+        "maturityMonthYear": "202609",
+        "contractMultiplier": "10"
+      }
+    },
+    {
+      "key": "FCOR-Z6",
+      "name": "Corium Index Future Dec26",
+      "schemes": { "exchangeSymbol": "FCORZ6", "custom:omega": "OMG-FCOR-Z6" },
+      "attrs": {
+        "securityType": "FUT",
+        "currency": "ZZD",
+        "mic": "XMER",
+        "maturityMonthYear": "202612",
+        "contractMultiplier": "10"
+      }
+    },
+    {
+      "key": "FCOR-U6W2",
+      "name": "Corium Index Future Sep26 Week 2",
+      "schemes": { "exchangeSymbol": "FCORU6w2", "custom:omega": "OMG-FCOR-U6W2" },
+      "attrs": {
+        "securityType": "FUT",
+        "currency": "ZZD",
+        "mic": "XMER",
+        "maturityMonthYear": "202609w2",
+        "contractMultiplier": "10"
+      }
+    },
+    {
+      "key": "MERBANK-U6-25C",
+      "name": "Meridian Bank Sep26 25 Call",
+      "schemes": { "exchangeSymbol": "MERB", "custom:omega": "OMG-MERB-U6-25C" },
+      "attrs": {
+        "securityType": "OPT",
+        "currency": "ZZD",
+        "mic": "XMER",
+        "maturityMonthYear": "202609",
+        "strikePrice": "25",
+        "putOrCall": "1",
+        "optAttribute": "A",
+        "contractMultiplier": "100",
+        "cfiCode": "OCASPS",
+        "underlying": "MERBANK"
+      }
+    },
+    {
+      "key": "MERBANK-U6-25P",
+      "name": "Meridian Bank Sep26 25 Put",
+      "schemes": { "exchangeSymbol": "MERB", "custom:omega": "OMG-MERB-U6-25P" },
+      "attrs": {
+        "securityType": "OPT",
+        "currency": "ZZD",
+        "mic": "XMER",
+        "maturityMonthYear": "202609",
+        "strikePrice": "25",
+        "putOrCall": "0",
+        "optAttribute": "A",
+        "contractMultiplier": "100",
+        "cfiCode": "OPASPS",
+        "underlying": "MERBANK"
+      }
+    },
+    {
+      "key": "MERBANK-U6-30C",
+      "name": "Meridian Bank Sep26 30 Call",
+      "schemes": { "exchangeSymbol": "MERB", "custom:omega": "OMG-MERB-U6-30C" },
+      "attrs": {
+        "securityType": "OPT",
+        "currency": "ZZD",
+        "mic": "XMER",
+        "maturityMonthYear": "202609",
+        "strikePrice": "30",
+        "putOrCall": "1",
+        "optAttribute": "A",
+        "contractMultiplier": "100",
+        "cfiCode": "OCASPS",
+        "underlying": "MERBANK"
+      }
+    }
+  ],
+  "strategies": [
+    {
+      "key": "FCOR-CAL-U6Z6",
+      "name": "Corium Calendar Spread Sep/Dec26",
+      "strategyType": "CS",
+      "schemes": { "custom:omega": "OMG-FCOR-CAL-U6Z6" },
+      "attrs": { "securityType": "MLEG", "currency": "ZZD", "mic": "XMER" },
+      "legs": [
+        { "instrument": "FCOR-U6", "ratioQty": "1", "side": "1" },
+        { "instrument": "FCOR-Z6", "ratioQty": "1", "side": "2" }
+      ]
+    }
+  ]
+}

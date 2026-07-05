@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "Meridian Demo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "fixVersion": "FIX.4.4",
   "dictionaryOverlay": {
     "fields": {
@@ -303,7 +303,8 @@
       "label": "ALPHA-UAT",
       "fragments": ["session-alpha"],
       "finalFragment": "final-alpha-uat",
-      "capabilities": ["slicer-v2", "lists"]
+      "capabilities": ["slicer-v2", "lists"],
+      "convention": "isin-decomposed"
     },
     {
       "id": "alpha-dev",
@@ -335,7 +336,8 @@
             "severity": "off"
           }
         ]
-      }
+      },
+      "convention": "house-composed"
     }
   ],
   "dimensions": [
@@ -359,11 +361,229 @@
           "availableOn": ["cap:slicer-v2"]
         }
       ]
+    },
+    {
+      "id": "instrument",
+      "label": "Instrument",
+      "kind": "instrument",
+      "required": true
     }
   ],
   "validationPolicy": {
     "rules": {
       "unknown-tag": "info"
+    }
+  },
+  "conventions": {
+    "isin-decomposed": {
+      "variants": [
+        {
+          "when": {
+            "securityType": ["OPT"]
+          },
+          "emit": [
+            {
+              "role": "symbol",
+              "from": {
+                "scheme": "exchangeSymbol"
+              },
+              "required": true
+            },
+            {
+              "role": "securityType",
+              "from": {
+                "attr": "securityType"
+              }
+            },
+            {
+              "role": "securityExchange",
+              "from": {
+                "attr": "mic"
+              }
+            },
+            {
+              "role": "currency",
+              "from": {
+                "attr": "currency"
+              }
+            },
+            {
+              "role": "maturityMonthYear",
+              "from": {
+                "attr": "maturityMonthYear"
+              },
+              "required": true
+            },
+            {
+              "role": "strikePrice",
+              "from": {
+                "attr": "strikePrice"
+              },
+              "required": true
+            },
+            {
+              "role": "putOrCall",
+              "from": {
+                "attr": "putOrCall"
+              },
+              "required": true
+            },
+            {
+              "role": "optAttribute",
+              "from": {
+                "attr": "optAttribute"
+              }
+            },
+            {
+              "role": "contractMultiplier",
+              "from": {
+                "attr": "contractMultiplier"
+              }
+            }
+          ]
+        },
+        {
+          "when": {
+            "securityType": ["FUT"]
+          },
+          "emit": [
+            {
+              "role": "symbol",
+              "from": {
+                "scheme": "exchangeSymbol"
+              },
+              "required": true
+            },
+            {
+              "role": "securityType",
+              "from": {
+                "attr": "securityType"
+              }
+            },
+            {
+              "role": "securityExchange",
+              "from": {
+                "attr": "mic"
+              }
+            },
+            {
+              "role": "currency",
+              "from": {
+                "attr": "currency"
+              }
+            },
+            {
+              "role": "maturityMonthYear",
+              "from": {
+                "attr": "maturityMonthYear"
+              },
+              "required": true
+            },
+            {
+              "role": "contractMultiplier",
+              "from": {
+                "attr": "contractMultiplier"
+              }
+            }
+          ]
+        },
+        {
+          "emit": [
+            {
+              "role": "securityId",
+              "from": {
+                "scheme": "isin"
+              },
+              "required": true
+            },
+            {
+              "role": "securityIdSource",
+              "from": {
+                "literal": "4"
+              }
+            },
+            {
+              "role": "symbol",
+              "from": {
+                "firstOf": [
+                  {
+                    "scheme": "exchangeSymbol"
+                  },
+                  {
+                    "scheme": "isin"
+                  }
+                ]
+              }
+            },
+            {
+              "role": "securityExchange",
+              "from": {
+                "attr": "mic"
+              }
+            },
+            {
+              "role": "currency",
+              "from": {
+                "attr": "currency"
+              }
+            },
+            {
+              "role": "securityType",
+              "from": {
+                "attr": "securityType"
+              }
+            }
+          ],
+          "altIds": [
+            {
+              "from": {
+                "scheme": "exchangeSymbol"
+              },
+              "sourceCode": "8"
+            }
+          ]
+        }
+      ]
+    },
+    "house-composed": {
+      "variants": [
+        {
+          "emit": [
+            {
+              "role": "securityId",
+              "from": {
+                "scheme": "custom:omega"
+              },
+              "required": true
+            },
+            {
+              "role": "securityIdSource",
+              "from": {
+                "literal": "8"
+              }
+            },
+            {
+              "role": "symbol",
+              "from": {
+                "firstOf": [
+                  {
+                    "scheme": "custom:omega"
+                  },
+                  {
+                    "scheme": "exchangeSymbol"
+                  }
+                ]
+              }
+            },
+            {
+              "role": "currency",
+              "from": {
+                "attr": "currency"
+              }
+            }
+          ]
+        }
+      ]
     }
   }
 }

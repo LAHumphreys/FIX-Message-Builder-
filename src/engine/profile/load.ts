@@ -204,6 +204,9 @@ export function validateProfile(raw: unknown): ProfileLoadResult {
     ...(isRecord(raw.generators)
       ? { generators: raw.generators as NonNullable<Profile['generators']> }
       : {}),
+    ...(isRecord(raw.conventions)
+      ? { conventions: raw.conventions as NonNullable<Profile['conventions']> }
+      : {}),
     ...(isRecord(raw.templates)
       ? { templates: raw.templates as NonNullable<Profile['templates']> }
       : {}),

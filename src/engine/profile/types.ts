@@ -8,6 +8,7 @@ import type { GeneratorDef } from '../generator/types.ts';
 import type { FixVersionId } from '../dictionary/types.ts';
 import type { JsonFieldDef, JsonLayoutItem } from '../dictionary/json.ts';
 import type { JsonMappingConfig } from '../render/json/types.ts';
+import type { IdentityConvention } from '../instrument/convention.ts';
 import type { Severity } from '../validation/types.ts';
 
 /** Overlay on a single field definition. */
@@ -105,6 +106,8 @@ export interface Profile {
   readonly dimensions: readonly DimensionDef[];
   readonly fragments: Readonly<Record<string, Fragment>>;
   readonly generators?: Readonly<Record<string, GeneratorDef>>;
+  /** Identity conventions (§3.10), referenced by systems. */
+  readonly conventions?: Readonly<Record<string, IdentityConvention>>;
   /** Base message-type template fragments, keyed by MsgType(35). */
   readonly templates?: Readonly<Record<string, string>>;
   readonly renderers?: {

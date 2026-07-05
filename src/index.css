@@ -576,3 +576,57 @@ select.input {
   font-size: var(--fs-xs);
   color: var(--text-faint);
 }
+
+/* --- Typeahead ------------------------------------------------------------ */
+
+.typeahead {
+  position: relative;
+}
+
+.typeahead-list {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  max-height: 16rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.2rem;
+  list-style: none;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  box-shadow: var(--shadow);
+}
+
+.typeahead-list button {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  gap: 0.5rem;
+  border: 0;
+  background: transparent;
+  padding: 0.3rem 0.5rem;
+  border-radius: 3px;
+  cursor: pointer;
+  text-align: left;
+  font-size: var(--fs-sm);
+}
+
+.typeahead-list button:hover,
+.typeahead-list button.selected {
+  background: var(--accent-dim);
+}
+
+.typeahead-list .hit-label {
+  font-weight: 600;
+}
+
+.typeahead-list .hit-detail {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  white-space: nowrap;
+}

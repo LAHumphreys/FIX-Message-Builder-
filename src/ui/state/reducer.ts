@@ -12,6 +12,8 @@ export function reducer(state: AppState, action: Action): AppState {
         outputTab: state.outputTab,
         delimiter: state.delimiter,
         omitLengthAndChecksum: state.omitLengthAndChecksum,
+        instrumentDb: state.instrumentDb,
+        instrumentDbIssues: state.instrumentDbIssues,
         profile: action.profile,
         profileIssues: action.issues,
         systemId: action.profile.systems[0]?.id,
@@ -20,6 +22,10 @@ export function reducer(state: AppState, action: Action): AppState {
     }
     case 'dictionary-loaded':
       return { ...state, baseDictionary: action.dictionary };
+    case 'instruments-loaded':
+      return action.db
+        ? { ...state, instrumentDb: action.db, instrumentDbIssues: action.issues }
+        : { ...state, instrumentDbIssues: action.issues };
     case 'select-system':
       // Retargeting (§3.8): keep selections and slot values; anything that
       // no longer resolves surfaces as findings — never silent breakage.

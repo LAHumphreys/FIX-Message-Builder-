@@ -1,6 +1,7 @@
 import { availableDimensions } from '../../engine/index.ts';
 import { useAppDispatch, useAppState } from '../state/context.ts';
 import type { DerivedBuild } from '../state/derive.ts';
+import { InstrumentPicker } from './InstrumentPicker.tsx';
 
 /**
  * Target system first (it drives availability filtering of everything else),
@@ -35,9 +36,16 @@ export function Selectors({ derived }: { derived: DerivedBuild }) {
             ))}
           </select>
         </div>
-        {dims
-          .filter(({ dimension }) => dimension.kind === 'options')
-          .map(({ dimension, options }) => (
+        {dims.map(({ dimension, options }) =>
+          dimension.kind === 'instrument' ? (
+            <InstrumentPicker
+              key={dimension.id}
+              dimensionId={dimension.id}
+              label={dimension.label}
+              required={dimension.required}
+              derived={derived}
+            />
+          ) : (
             <div className="field-row" key={dimension.id}>
               <label className="field-label" htmlFor={`sel-${dimension.id}`}>
                 {dimension.label}
@@ -64,7 +72,8 @@ export function Selectors({ derived }: { derived: DerivedBuild }) {
                 ))}
               </select>
             </div>
-          ))}
+          )
+        )}
       </div>
     </section>
   );
