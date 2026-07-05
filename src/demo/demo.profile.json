@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 1,
+  "name": "Meridian Demo",
+  "version": "0.2.0",
+  "fixVersion": "FIX.4.4",
+  "dictionaryOverlay": {
+    "fields": {
+      "7001": [
+        "SlicerStyle",
+        "INT",
+        {
+          "1": "TWAP",
+          "2": "VWAP",
+          "3": "POV"
+        }
+      ],
+      "7002": ["SliceQty", "QTY"],
+      "7003": ["SliceIntervalMs", "INT"],
+      "7004": ["SliceRandomize", "BOOLEAN"],
+      "20101": ["MeridianGateway", "STRING"],
+      "20102": ["MeridianDeskCode", "STRING"]
+    }
+  },
+  "templates": {
+    "D": "tmpl-new-order-single"
+  },
+  "generators": {
+    "clOrdId": {
+      "kind": "template",
+      "template": "CLORD-{date:yyyyMMdd}-{seq:4}"
+    },
+    "listId": {
+      "kind": "shared",
+      "of": "listIdValue"
+    },
+    "listIdValue": {
+      "kind": "template",
+      "template": "L{date:yyyyMMdd}-{rand:4}"
+    },
+    "transactTime": {
+      "kind": "timestamp",
+      "precision": "micros"
+    },
+    "sendingTime": {
+      "kind": "timestamp",
+      "precision": "micros"
+    }
+  },
+  "fragments": {
+    "tmpl-new-order-single": {
+      "label": "NewOrderSingle base",
+      "ops": [
+        {
+          "op": "setGenerated",
+          "tag": 11,
+          "generator": "clOrdId"
+        },
+        {
+          "op": "set",
+          "tag": 21,
+          "value": "1"
+        },
+        {
+          "op": "setGenerated",
+          "tag": 60,
+          "generator": "transactTime"
+        }
+      ]
+    },
+    "session-alpha": {
+      "label": "Session: Alpha",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 49,
+          "value": "MERIDIAN-CLI"
+        },
+        {
+          "op": "set",
+          "tag": 56,
+          "value": "ALPHA-GW"
+        },
+        {
+          "op": "set",
+          "tag": 34,
+          "value": "1"
+        },
+        {
+          "op": "setGenerated",
+          "tag": 52,
+          "generator": "sendingTime"
+        }
+      ]
+    },
+    "session-omega": {
+      "label": "Session: Omega",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 49,
+          "value": "MERIDIAN-CLI"
+        },
+        {
+          "op": "set",
+          "tag": 56,
+          "value": "OMEGA-HUB"
+        },
+        {
+          "op": "set",
+          "tag": 20102,
+          "value": "DESK-7"
+        },
+        {
+          "op": "set",
+          "tag": 34,
+          "value": "1"
+        },
+        {
+          "op": "setGenerated",
+          "tag": 52,
+          "generator": "sendingTime"
+        }
+      ]
+    },
+    "final-alpha-uat": {
+      "label": "Enforced routing: ALPHA-UAT",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 20101,
+          "value": "ALPHA-UAT-GW"
+        }
+      ]
+    },
+    "final-alpha-dev": {
+      "label": "Enforced routing: ALPHA-DEV",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 20101,
+          "value": "ALPHA-DEV-GW"
+        }
+      ]
+    },
+    "final-omega": {
+      "label": "Enforced routing: OMEGA",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 20101,
+          "value": "OMEGA-LEGACY-GW"
+        }
+      ]
+    },
+    "flow-limit": {
+      "label": "Flow: Plain limit",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-slicer": {
+      "label": "Flow: SLICER algo",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Total quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Limit price",
+            "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 7001,
+          "slot": {
+            "tag": 7001,
+            "label": "Slicer style",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 7002,
+          "slot": {
+            "tag": 7002,
+            "label": "Slice quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 7003,
+          "slot": {
+            "tag": 7003,
+            "label": "Slice interval (ms)",
+            "type": "int",
+            "default": "5000"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 7004,
+          "slot": {
+            "tag": 7004,
+            "label": "Randomize slices",
+            "type": "bool",
+            "default": "N"
+          }
+        }
+      ]
+    }
+  },
+  "systems": [
+    {
+      "id": "alpha-uat",
+      "label": "ALPHA-UAT",
+      "fragments": ["session-alpha"],
+      "finalFragment": "final-alpha-uat",
+      "capabilities": ["slicer-v2", "lists"]
+    },
+    {
+      "id": "alpha-dev",
+      "label": "ALPHA-DEV",
+      "extends": "alpha-uat",
+      "finalFragment": "final-alpha-dev",
+      "capabilities": ["lists"]
+    },
+    {
+      "id": "omega-legacy",
+      "label": "OMEGA-LEGACY",
+      "fragments": ["session-omega"],
+      "finalFragment": "final-omega",
+      "capabilities": ["slicer-v2", "futures", "multileg"],
+      "dictionaryOverlay": {
+        "fields": {
+          "59": {
+            "enums": {
+              "X": "At Omega Close"
+            }
+          }
+        }
+      },
+      "validationPolicy": {
+        "overrides": [
+          {
+            "rule": "enum-unknown",
+            "tag": 59,
+            "severity": "off"
+          }
+        ]
+      }
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "flow",
+      "label": "Flow",
+      "kind": "options",
+      "required": true,
+      "options": [
+        {
+          "id": "limit",
+          "label": "Plain limit",
+          "fragment": "flow-limit",
+          "msgType": "D"
+        },
+        {
+          "id": "slicer",
+          "label": "SLICER algo",
+          "fragment": "flow-slicer",
+          "msgType": "D",
+          "availableOn": ["cap:slicer-v2"]
+        }
+      ]
+    }
+  ],
+  "validationPolicy": {
+    "rules": {
+      "unknown-tag": "info"
+    }
+  }
+}

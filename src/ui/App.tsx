@@ -1,29 +1,75 @@
-import { field, findField } from '../engine/index.ts';
+import { useEffect, useState } from 'react';
+import { AppProvider } from './state/AppProvider.tsx';
+import { useBuildResult } from './state/derive.ts';
+import { LoadPanel } from './files/LoadPanel.tsx';
+import { Selectors } from './builder/Selectors.tsx';
+import { SlotForm } from './builder/SlotForm.tsx';
+import { OutputPanel } from './output/OutputPanel.tsx';
+import { FindingsPanel } from './validation/FindingsPanel.tsx';
 
-export function App() {
-  // Placeholder wiring proving the UI layer consumes the engine's public
-  // surface; replaced by the real builder in milestone 3.
-  const demo = findField([field(35, 'D', { sourceId: 'demo', sourceLabel: 'Demo' })], 35);
+type Theme = 'system' | 'light' | 'dark';
 
-  // The dev channel deploys under /dev/ (docs/WORKFLOW.md); the base path
-  // therefore identifies which channel is being viewed.
-  const channel = import.meta.env.BASE_URL.endsWith('/dev/') ? 'dev preview' : 'stable';
+function ThemeToggle() {
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem('fixbuilder.theme') as Theme | null) ?? 'system'
+  );
+
+  useEffect(() => {
+    if (theme === 'system') {
+      delete document.documentElement.dataset.theme;
+      localStorage.removeItem('fixbuilder.theme');
+    } else {
+      document.documentElement.dataset.theme = theme;
+      localStorage.setItem('fixbuilder.theme', theme);
+    }
+  }, [theme]);
 
   return (
-    <main>
-      <h1>FIX Message Builder</h1>
-      <p>
-        A fully client-side tool for composing FIX protocol test messages. No data ever leaves your
-        machine — there is no network activity after page load.
-      </p>
-      <p>
-        Engine smoke test: <code>35 (MsgType) = {demo?.value}</code>
-      </p>
-      <footer>
-        <small>
-          Channel: <strong>{channel}</strong>
-        </small>
-      </footer>
+    <span className="seg" title="Theme">
+      {(['system', 'light', 'dark'] as const).map((t) => (
+        <button key={t} className={theme === t ? 'active' : ''} onClick={() => setTheme(t)}>
+          {t === 'system' ? 'auto' : t}
+        </button>
+      ))}
+    </span>
+  );
+}
+
+function Workbench() {
+  const derived = useBuildResult();
+  return (
+    <main className="app-main">
+      <div className="rail">
+        <LoadPanel />
+      </div>
+      <div className="col col-center">
+        <Selectors derived={derived} />
+        <SlotForm derived={derived} />
+      </div>
+      <div className="col">
+        <OutputPanel derived={derived} />
+        <FindingsPanel derived={derived} />
+      </div>
     </main>
+  );
+}
+
+export function App() {
+  const channel = import.meta.env.BASE_URL.endsWith('/dev/') ? 'dev preview' : 'stable';
+  return (
+    <AppProvider>
+      <div className="app">
+        <header className="app-header">
+          <h1 className="app-title">
+            <span className="fix-8">8=</span>FIX Message Builder
+          </h1>
+          <span className="badge-channel">{channel}</span>
+          <span className="spacer" />
+          <span className="hint">no data leaves this browser</span>
+          <ThemeToggle />
+        </header>
+        <Workbench />
+      </div>
+    </AppProvider>
   );
 }
