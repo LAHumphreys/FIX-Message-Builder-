@@ -33,6 +33,9 @@ export interface AppState {
   readonly instrumentDbIssues: readonly InstrumentDbIssue[];
   /** Base dictionary for the active FIX version (loaded async). */
   readonly baseDictionary: Dictionary | undefined;
+  /** Set when the async dictionary load failed (e.g. stale cached bundle
+   *  requesting a chunk that a newer deploy has replaced). */
+  readonly dictionaryError: string | undefined;
   readonly systemId: string | undefined;
   /** 'profile' follows the profile's declared default. */
   readonly fixVersion: FixVersionId | 'profile';
@@ -65,6 +68,7 @@ export type Action =
       readonly issues: readonly ProfileIssue[];
     }
   | { readonly type: 'dictionary-loaded'; readonly dictionary: Dictionary }
+  | { readonly type: 'dictionary-error'; readonly message: string }
   | {
       readonly type: 'instruments-loaded';
       readonly db: InstrumentDb | undefined;
@@ -121,6 +125,7 @@ export const initialState: AppState = {
   instrumentDb: undefined,
   instrumentDbIssues: [],
   baseDictionary: undefined,
+  dictionaryError: undefined,
   systemId: undefined,
   fixVersion: 'profile',
   selections: {},

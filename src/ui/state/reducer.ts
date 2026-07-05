@@ -27,7 +27,10 @@ export function reducer(state: AppState, action: Action): AppState {
         return { ...state, profileIssues: action.issues };
       }
       // Fresh workspace state for a new profile; keep UI preferences and
-      // any already-loaded instrument DB.
+      // any already-loaded instrument DB. The base dictionary must survive
+      // too: it is keyed by FIX version alone, and the reload effect only
+      // re-fires when that version changes — dropping it here left the
+      // builder empty forever after a second profile load.
       return {
         ...initialState,
         outputTab: state.outputTab,
@@ -35,6 +38,8 @@ export function reducer(state: AppState, action: Action): AppState {
         omitLengthAndChecksum: state.omitLengthAndChecksum,
         instrumentDb: state.instrumentDb,
         instrumentDbIssues: state.instrumentDbIssues,
+        baseDictionary: state.baseDictionary,
+        dictionaryError: state.dictionaryError,
         hostOrigin: state.hostOrigin,
         transportLog: state.transportLog,
         profile: action.profile,
@@ -45,14 +50,21 @@ export function reducer(state: AppState, action: Action): AppState {
       };
     }
     case 'dictionary-loaded':
-      return { ...state, baseDictionary: action.dictionary };
+      return { ...state, baseDictionary: action.dictionary, dictionaryError: undefined };
+    case 'dictionary-error':
+      return { ...state, dictionaryError: action.message };
     case 'instruments-loaded':
       return action.db
         ? { ...state, instrumentDb: action.db, instrumentDbIssues: action.issues }
         : { ...state, instrumentDbIssues: action.issues };
     case 'set-fix-version':
       // Dictionary reloads via the AppProvider effect; build re-derives.
-      return { ...state, fixVersion: action.fixVersion, baseDictionary: undefined };
+      return {
+        ...state,
+        fixVersion: action.fixVersion,
+        baseDictionary: undefined,
+        dictionaryError: undefined,
+      };
     case 'select-system':
       // Retargeting (§3.8): keep selections and slot values; anything that
       // no longer resolves surfaces as findings — never silent breakage.

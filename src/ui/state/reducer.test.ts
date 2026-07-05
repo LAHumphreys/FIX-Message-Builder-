@@ -26,6 +26,26 @@ describe('reducer', () => {
     expect(next.buildNonce).toBe(5);
   });
 
+  it('profile-loaded keeps the loaded dictionary (regression: reloading a profile bricked the builder)', () => {
+    // The dictionary-reload effect only fires when the FIX version changes,
+    // so profile-loaded must not discard an already-loaded dictionary.
+    const dictionary = { version: 'FIX.4.4' } as never;
+    let s = reducer(initialState, { type: 'profile-loaded', profile, issues });
+    s = reducer(s, { type: 'dictionary-loaded', dictionary });
+    const reloaded = reducer(s, { type: 'profile-loaded', profile, issues });
+    expect(reloaded.baseDictionary).toBe(dictionary);
+  });
+
+  it('dictionary error surfaces and clears on a later successful load', () => {
+    const s = reducer(initialState, { type: 'dictionary-error', message: 'chunk 404' });
+    expect(s.dictionaryError).toBe('chunk 404');
+    const loaded = reducer(s, {
+      type: 'dictionary-loaded',
+      dictionary: { version: 'FIX.4.4' } as never,
+    });
+    expect(loaded.dictionaryError).toBeUndefined();
+  });
+
   it('select-system keeps selections and slot values (retargeting)', () => {
     const loaded = reducer(initialState, { type: 'profile-loaded', profile, issues });
     const chosen = reducer(loaded, {
