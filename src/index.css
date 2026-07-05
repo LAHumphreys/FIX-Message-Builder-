@@ -224,6 +224,10 @@ textarea {
 .rail,
 .col {
   min-height: 0;
+  /* Grid items default to min-width auto: one wide panel (a batch grid, a
+     long wire) would push its whole column past the viewport instead of
+     scrolling inside its own panel. */
+  min-width: 0;
   overflow-y: auto;
   padding: 0.75rem;
   display: flex;
@@ -243,6 +247,10 @@ textarea {
    scrolls as one — without this, the fixed-height grid squeezes each section
    into a small independently-scrolling box. */
 @media (max-width: 900px) {
+  .app-header {
+    flex-wrap: wrap;
+    row-gap: 0.15rem;
+  }
   .app-main {
     grid-template-columns: 1fr;
     grid-auto-rows: max-content;
@@ -667,6 +675,12 @@ select.input {
   padding: 0.15rem 0.25rem;
   border-bottom: 1px solid var(--border);
   min-width: 5rem;
+}
+
+/* Enum cells (leg side, order type…) hold labels like "2 — Sell"; without a
+   floor the column squeezes them into "2 — Se". */
+.grid-table td select.input {
+  min-width: 6.5rem;
 }
 
 .grid-table td.rownum {

@@ -35,7 +35,8 @@ export function InstrumentPicker({
       <Typeahead
         id={`inst-${dimensionId}`}
         index={derived.searchIndex}
-        placeholder={selected?.name ?? selected?.key ?? 'Search instruments…'}
+        placeholder="Search instruments…"
+        {...(selected ? { selectedLabel: selected.name ?? selected.key } : {})}
         onPick={(key) => dispatch({ type: 'select-option', dimensionId, optionId: key ?? '' })}
         allowClear
       />

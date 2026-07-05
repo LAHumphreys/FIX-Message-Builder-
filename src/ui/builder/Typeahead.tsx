@@ -6,6 +6,7 @@ export function Typeahead({
   id,
   index,
   placeholder,
+  selectedLabel,
   onPick,
   allowClear,
   compact,
@@ -13,6 +14,8 @@ export function Typeahead({
   id: string;
   index: SearchIndex | undefined;
   placeholder: string;
+  /** Current selection, shown as a real value while not searching. */
+  selectedLabel?: string;
   onPick: (key: string | undefined) => void;
   allowClear?: boolean;
   compact?: boolean;
@@ -30,6 +33,9 @@ export function Typeahead({
   }, []);
 
   const hits: SearchHit[] = open ? (index?.search(query) ?? []) : [];
+  // Closed with a selection: display it as a value, not a grey hint. Opening
+  // switches to the (empty) query so typing starts a fresh search.
+  const showSelection = !open && query === '' && selectedLabel !== undefined;
 
   return (
     <div className={`typeahead${compact ? ' compact' : ''}`} ref={rootRef}>
@@ -40,7 +46,7 @@ export function Typeahead({
         aria-expanded={open}
         aria-autocomplete="list"
         placeholder={index ? placeholder : 'No instrument DB loaded'}
-        value={query}
+        value={showSelection ? selectedLabel : query}
         disabled={!index}
         onFocus={() => setOpen(true)}
         onChange={(e) => {

@@ -45,11 +45,15 @@ export function BatchGrid({ derived }: { derived: DerivedBuild }) {
                   <Typeahead
                     id={`row-inst-${i}`}
                     index={derived.searchIndex}
-                    placeholder={
-                      row.instrument
-                        ? (instrumentDb?.instruments.get(row.instrument)?.name ?? row.instrument)
-                        : '—'
-                    }
+                    placeholder="—"
+                    {...(row.instrument
+                      ? {
+                          selectedLabel:
+                            instrumentDb?.instruments.get(row.instrument)?.name ??
+                            instrumentDb?.strategies.get(row.instrument)?.name ??
+                            row.instrument,
+                        }
+                      : {})}
                     onPick={(key) =>
                       dispatch({ type: 'row-update', index: i, instrument: key ?? '' })
                     }
