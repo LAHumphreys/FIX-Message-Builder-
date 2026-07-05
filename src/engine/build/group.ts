@@ -95,9 +95,16 @@ function rowSlotFragments(
   shared: Readonly<Record<string, string>>,
   row: BatchRow
 ): Fragment[] {
+  // Empty string means "no tag": a blank shared field contributes nothing,
+  // and a row explicitly blanked to '' suppresses the inherited value too.
   const merged = new Map<number, string>();
-  for (const [tag, value] of Object.entries(shared)) merged.set(Number(tag), value);
-  for (const [tag, value] of Object.entries(row.slotValues)) merged.set(Number(tag), value);
+  for (const [tag, value] of Object.entries(shared)) {
+    if (value !== '') merged.set(Number(tag), value);
+  }
+  for (const [tag, value] of Object.entries(row.slotValues)) {
+    if (value === '') merged.delete(Number(tag));
+    else merged.set(Number(tag), value);
+  }
 
   const defaults: FragmentOp[] = slots
     .filter((s) => !merged.has(s.spec.tag))

@@ -6,6 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
+  buildBatch,
   buildSingle,
   loadBaseDictionary,
   memoryCounterStore,
@@ -47,6 +48,45 @@ describe('demo profile', () => {
     const db = parseInstrumentDbJson(instrumentsText);
     expect(db.issues).toEqual([]);
     expect(db.db!.instruments.size).toBeGreaterThanOrEqual(15);
+  });
+});
+
+describe('basket flows: per-row order types (mixed baskets)', () => {
+  it('rows override the shared order type; empty optional params emit no tag', () => {
+    const db = parseInstrumentDbJson(instrumentsText).db!;
+    const convention = profile!.conventions!['isin-decomposed']!;
+    const result = buildBatch(
+      resolved,
+      {
+        selections: { flow: 'basket' },
+        // Shared defaults: everything is a limit order at 25.10 unless a row says otherwise.
+        slotValues: { '40': '2', '44': '25.10' },
+        rows: [
+          { instrument: 'MERBANK', slotValues: { '38': '100' } },
+          { instrument: 'CORIUM', slotValues: { '38': '250', '40': '1', '44': '' } },
+          {
+            instrument: 'SOLSTICE',
+            slotValues: { '38': '75', '40': '4', '44': '111.50', '99': '112.00' },
+          },
+        ],
+      },
+      env(),
+      { db, convention }
+    );
+
+    const tag = (i: number, t: number) => {
+      const hit = result.messages[i]!.fields.find((f) => f.kind === 'field' && f.tag === t);
+      return hit ? (hit as SimpleField).value : undefined;
+    };
+    // Row 1: inherits the shared limit type and price.
+    expect([tag(0, 40), tag(0, 44), tag(0, 99)]).toEqual(['2', '25.10', undefined]);
+    // Row 2: market — overrides 40; the blanked price cell suppresses the
+    // inherited shared price entirely; there is no stop tag.
+    expect([tag(1, 40), tag(1, 44), tag(1, 99)]).toEqual(['1', undefined, undefined]);
+    // Row 3: stop-limit with both prices.
+    expect([tag(2, 40), tag(2, 44), tag(2, 99)]).toEqual(['4', '111.50', '112.00']);
+    // All three share the generated ListID.
+    expect(new Set(result.messages.map((_, i) => tag(i, 66))).size).toBe(1);
   });
 });
 

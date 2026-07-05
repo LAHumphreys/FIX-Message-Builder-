@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "Meridian Demo",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "fixVersion": "FIX.4.4",
   "dictionaryOverlay": {
     "fields": {
@@ -301,11 +301,6 @@
       "label": "Flow: Basket",
       "ops": [
         {
-          "op": "set",
-          "tag": 40,
-          "value": "2"
-        },
-        {
           "op": "setGenerated",
           "tag": 66,
           "generator": "listId"
@@ -336,11 +331,47 @@
         },
         {
           "op": "slot",
+          "tag": 40,
+          "slot": {
+            "tag": 40,
+            "label": "Order type",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "2"
+          }
+        },
+        {
+          "op": "slot",
           "tag": 44,
           "slot": {
             "tag": 44,
-            "label": "Price",
+            "label": "Limit price",
             "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 99,
+          "slot": {
+            "tag": 99,
+            "label": "Stop price",
+            "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
           }
         }
       ]

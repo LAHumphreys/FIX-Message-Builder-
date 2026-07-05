@@ -141,7 +141,9 @@ export function buildSingle(
 
   // Effective slot values: user input wins; otherwise literal or generated default.
   const userValues = new Map(
-    Object.entries(input.slotValues).map(([tag, value]) => [Number(tag), value])
+    Object.entries(input.slotValues)
+      .filter(([, value]) => value !== '')
+      .map(([tag, value]) => [Number(tag), value])
   );
   const userFragment: Fragment = {
     id: USER_SOURCE.id,

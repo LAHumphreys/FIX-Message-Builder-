@@ -350,6 +350,74 @@ add/remove entries interactively. Two working approaches:
 
 Prefer B; fall back to C1/C2 for true repeating groups.
 
+### Order types in basket/list flows
+
+In `batch` and `list` modes every slot becomes a **grid column** with
+per-row overrides, and an **empty cell emits no tag at all** (an explicitly
+blanked cell also suppresses the shared value). So to let one basket mix
+market/limit/stop rows, make OrdType(40) a slot and its price parameters
+optional slots:
+
+```json
+[
+  { "op": "setGenerated", "tag": 66, "generator": "listId" },
+  {
+    "op": "slot",
+    "tag": 54,
+    "slot": {
+      "tag": 54,
+      "label": "Side",
+      "type": "enum",
+      "enumSource": { "kind": "dictionary" },
+      "required": true,
+      "default": "1"
+    }
+  },
+  {
+    "op": "slot",
+    "tag": 38,
+    "slot": { "tag": 38, "label": "Quantity", "type": "decimal", "required": true }
+  },
+  {
+    "op": "slot",
+    "tag": 40,
+    "slot": {
+      "tag": 40,
+      "label": "Order type",
+      "type": "enum",
+      "enumSource": { "kind": "dictionary" },
+      "required": true,
+      "default": "2"
+    }
+  },
+  { "op": "slot", "tag": 44, "slot": { "tag": 44, "label": "Limit price", "type": "decimal" } },
+  { "op": "slot", "tag": 99, "slot": { "tag": 99, "label": "Stop price", "type": "decimal" } }
+]
+```
+
+Usage: the shared parameter form sets the defaults (e.g. `40=2`); a market
+row overrides its Order type cell to `1` and leaves the price cells empty —
+no 44/99 tags are emitted for that row. TIP: for parameters that vary per
+row, leave the SHARED field empty and fill only the rows that need it.
+
+Alternative for whole-basket order types: declare a second `options`
+dimension ("Order type") whose option fragments set 40 and declare the
+associated slots — dimension fragments compose with the flow fragment in
+declaration order. Per-row mixing still needs the slot-column approach:
+
+```jsonc
+// sketch — combine with the flow dimension from §9
+{
+  "id": "ordertype",
+  "label": "Order type",
+  "kind": "options",
+  "options": [
+    { "id": "limit", "label": "Limit", "fragment": "ot-limit" },
+    { "id": "stop-limit", "label": "Stop limit", "fragment": "ot-stop-limit" },
+  ],
+}
+```
+
 ---
 
 ## 7. `templates` — base message boilerplate

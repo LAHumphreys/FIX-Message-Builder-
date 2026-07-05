@@ -9,9 +9,13 @@ function updateRow(
   return rows.map((row, i) => {
     if (i !== index) return row;
     const instrument = patch.instrument === '' ? undefined : (patch.instrument ?? row.instrument);
+    const slotValues = { ...row.slotValues, ...patch.slotValues };
+    for (const key of Object.keys(slotValues)) {
+      if (slotValues[key] === '') delete slotValues[key];
+    }
     return {
       ...(instrument !== undefined ? { instrument } : {}),
-      slotValues: { ...row.slotValues, ...patch.slotValues },
+      slotValues,
     };
   });
 }
