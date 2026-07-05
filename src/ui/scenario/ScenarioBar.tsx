@@ -42,7 +42,7 @@ export function ScenarioBar({ derived }: { derived: DerivedBuild }) {
       schemaVersion: SCENARIO_SCHEMA_VERSION,
       name: scenarioName || 'untitled',
       profile: { name: profile.name, version: profile.version },
-      fixVersion: profile.fixVersion,
+      fixVersion: state.fixVersion === 'profile' ? profile.fixVersion : state.fixVersion,
       mode: derived.mode,
       systemId: state.systemId ?? '',
       selections: state.selections,

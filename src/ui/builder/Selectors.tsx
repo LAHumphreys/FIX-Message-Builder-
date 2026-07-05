@@ -1,4 +1,4 @@
-import { availableDimensions } from '../../engine/index.ts';
+import { availableDimensions, FIX_VERSIONS } from '../../engine/index.ts';
 import { useAppDispatch, useAppState } from '../state/context.ts';
 import type { DerivedBuild } from '../state/derive.ts';
 import { InstrumentPicker } from './InstrumentPicker.tsx';
@@ -10,7 +10,7 @@ import { ModeTabs } from './ModeTabs.tsx';
  * flagged — selecting one is allowed and produces a finding, never a block.
  */
 export function Selectors({ derived }: { derived: DerivedBuild }) {
-  const { profile, systemId, selections } = useAppState();
+  const { profile, systemId, selections, fixVersion } = useAppState();
   const dispatch = useAppDispatch();
 
   if (!profile) return null;
@@ -75,6 +75,29 @@ export function Selectors({ derived }: { derived: DerivedBuild }) {
             </div>
           )
         )}
+        <div className="field-row">
+          <label className="field-label" htmlFor="sel-fixversion">
+            FIX version
+          </label>
+          <select
+            id="sel-fixversion"
+            className="input"
+            value={fixVersion}
+            onChange={(e) =>
+              dispatch({
+                type: 'set-fix-version',
+                fixVersion: e.target.value as never,
+              })
+            }
+          >
+            <option value="profile">profile default ({profile.fixVersion})</option>
+            {FIX_VERSIONS.map((v) => (
+              <option key={v} value={v}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </div>
         <ModeTabs derived={derived} />
       </div>
     </section>

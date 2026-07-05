@@ -7,7 +7,7 @@ import type { Field, FixMessage } from '../message/types.ts';
 import type { Fragment, FragmentOp, SourcedFragment } from '../fragment/types.ts';
 import { mergeFragments } from '../fragment/merge.ts';
 import type { Finding } from '../validation/types.ts';
-import { beginStringFor } from '../dictionary/types.ts';
+import { beginStringFor, type FixVersionId } from '../dictionary/types.ts';
 import { BatchScope, type GeneratorContext, type GeneratorDef } from '../generator/types.ts';
 import { evaluateGenerator, type GeneratorDefs } from '../generator/evaluate.ts';
 import type { ResolvedSystem } from '../profile/resolve.ts';
@@ -63,7 +63,8 @@ function rowInstrumentFragment(
   resolved: ResolvedSystem,
   instruments: InstrumentContext | undefined,
   context: 'instrument' | 'leg',
-  findings: Finding[]
+  findings: Finding[],
+  fixVersion?: FixVersionId
 ): Fragment | undefined {
   if (!row.instrument) return undefined;
   const record =
@@ -82,7 +83,7 @@ function rowInstrumentFragment(
     record,
     instruments.convention,
     context,
-    resolved.profile.fixVersion
+    fixVersion ?? resolved.profile.fixVersion
   );
   findings.push(...placed.findings);
   return placed.fragment;
@@ -148,7 +149,14 @@ export function buildBatch(
   for (const row of input.rows) {
     const rowFindings: Finding[] = [];
     const rowStack: SourcedFragment[] = [...stack];
-    const inst = rowInstrumentFragment(row, resolved, instruments, 'instrument', rowFindings);
+    const inst = rowInstrumentFragment(
+      row,
+      resolved,
+      instruments,
+      'instrument',
+      rowFindings,
+      input.fixVersion
+    );
     if (inst) rowStack.push({ fragment: inst, stage: 'instrument' });
     const [defaultsFrag, userFrag] = rowSlotFragments(discovery.slots, input.slotValues, row);
     rowStack.push({ fragment: defaultsFrag!, stage: 'slots' });
@@ -215,7 +223,14 @@ export function buildList(
       },
       stage: 'template',
     });
-    const inst = rowInstrumentFragment(row, resolved, instruments, 'instrument', rowFindings);
+    const inst = rowInstrumentFragment(
+      row,
+      resolved,
+      instruments,
+      'instrument',
+      rowFindings,
+      input.fixVersion
+    );
     if (inst) entryStack.push({ fragment: inst, stage: 'instrument' });
     const [defaultsFrag, userFrag] = rowSlotFragments(discovery.slots, input.slotValues, row);
     entryStack.push({ fragment: defaultsFrag!, stage: 'slots' });
@@ -325,7 +340,7 @@ export function buildMultileg(
         record,
         instruments.convention,
         'leg',
-        resolved.profile.fixVersion
+        input.fixVersion ?? resolved.profile.fixVersion
       );
       legStack.push({ fragment: placed.fragment, stage: 'instrument' });
       legFindings.push(...placed.findings);
@@ -364,7 +379,7 @@ export function buildMultileg(
       strategy,
       instruments.convention,
       'instrument',
-      resolved.profile.fixVersion
+      input.fixVersion ?? resolved.profile.fixVersion
     );
     topStack.push({ fragment: placed.fragment, stage: 'instrument' });
     findings.push(...placed.findings);

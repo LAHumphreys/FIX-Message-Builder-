@@ -254,39 +254,37 @@ function checkEntryOrder(
   }
 }
 
-/** header-trailer-order: header tags after body tags, or trailer tags not
- * at the end of the composed field list (advisory — the renderer reorders). */
+/**
+ * header-trailer-order: the renderer reorders TOP-LEVEL fields onto the
+ * correct wire positions, so composition order there is fine by design.
+ * What it cannot fix is a header/trailer tag nested inside a repeating
+ * group entry — that renders in place, inside the group.
+ */
 function checkHeaderTrailerOrder(ctx: RuleContext, msg: FixMessage): void {
-  let seenBody = false;
-  const fields = msg.fields;
-  for (let i = 0; i < fields.length; i++) {
-    const field = fields[i]!;
-    const tag = field.kind === 'field' ? field.tag : field.countTag;
-    if (SYNTHETIC_TAGS.has(tag)) continue;
-    const isHeader = ctx.layout.headerTags.has(tag);
-    const isTrailer = ctx.layout.trailerTags.has(tag);
-    if (isHeader && seenBody) {
-      report(
-        ctx,
-        'header-trailer-order',
-        pathFor('', tag, 0),
-        `Header field ${tag} appears after body fields`,
-        tag,
-        field.provenance
-      );
-    } else if (isTrailer && i < fields.length - 1) {
-      report(
-        ctx,
-        'header-trailer-order',
-        pathFor('', tag, 0),
-        `Trailer field ${tag} is not at the end of the message`,
-        tag,
-        field.provenance
-      );
-    } else if (!isHeader && !isTrailer) {
-      seenBody = true;
+  const walkEntries = (fields: FieldList, prefix: string): void => {
+    for (const field of fields) {
+      if (field.kind !== 'group') continue;
+      field.entries.forEach((entry, i) => {
+        const entryPrefix = `${prefix}${field.countTag}[${i}]`;
+        for (const nested of entry) {
+          const tag = nested.kind === 'field' ? nested.tag : nested.countTag;
+          if (ctx.layout.headerTags.has(tag) || ctx.layout.trailerTags.has(tag)) {
+            const kind = ctx.layout.headerTags.has(tag) ? 'Header' : 'Trailer';
+            report(
+              ctx,
+              'header-trailer-order',
+              `${entryPrefix}/${tag}`,
+              `${kind} field ${tag} is nested inside a repeating group entry`,
+              tag,
+              nested.provenance
+            );
+          }
+        }
+        walkEntries(entry, `${entryPrefix}/`);
+      });
     }
-  }
+  };
+  walkEntries(msg.fields, '');
 }
 
 export function validateMessage(

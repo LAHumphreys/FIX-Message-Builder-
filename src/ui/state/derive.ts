@@ -63,6 +63,7 @@ export function useBuildResult(): DerivedBuild {
     profile,
     baseDictionary,
     systemId,
+    fixVersion: fixVersionChoice,
     selections,
     slotValues,
     mode,
@@ -95,6 +96,7 @@ export function useBuildResult(): DerivedBuild {
       random: mulberry32(buildNonce),
       counters: memoryCounterStore(),
     };
+    const fixVersion = fixVersionChoice === 'profile' ? profile.fixVersion : fixVersionChoice;
 
     // Effective mode: explicit choice, else the flow option's first mode.
     const selectionInfo = resolveSelections(resolved, selections);
@@ -144,13 +146,23 @@ export function useBuildResult(): DerivedBuild {
     const findings: Finding[] = [...preFindings];
 
     if (effectiveMode === 'batch') {
-      const result = buildBatch(resolved, { selections, slotValues, rows }, env, instruments);
+      const result = buildBatch(
+        resolved,
+        { selections, slotValues, rows, fixVersion },
+        env,
+        instruments
+      );
       messages = [...result.messages];
       slots = result.slots;
       findings.push(...result.findings, ...result.perMessage.flatMap((m) => m.findings));
       notices = result.perMessage.flatMap((m) => m.notices);
     } else if (effectiveMode === 'list') {
-      const result = buildList(resolved, { selections, slotValues, rows }, env, instruments);
+      const result = buildList(
+        resolved,
+        { selections, slotValues, rows, fixVersion },
+        env,
+        instruments
+      );
       messages = [result.message];
       slots = result.slots;
       notices = result.notices;
@@ -159,7 +171,7 @@ export function useBuildResult(): DerivedBuild {
       if (strategy) {
         const result = buildMultileg(
           resolved,
-          { selections, slotValues, strategyKey: strategy.key, legOverrides },
+          { selections, slotValues, strategyKey: strategy.key, legOverrides, fixVersion },
           env,
           instruments
         );
@@ -178,7 +190,7 @@ export function useBuildResult(): DerivedBuild {
     } else {
       let instFragment: Fragment | undefined;
       if (record && convention) {
-        const placed = instrumentFragment(record, convention, 'instrument', profile.fixVersion);
+        const placed = instrumentFragment(record, convention, 'instrument', fixVersion);
         instFragment = placed.fragment;
         findings.push(...placed.findings);
       }
@@ -187,6 +199,7 @@ export function useBuildResult(): DerivedBuild {
         {
           selections,
           slotValues,
+          fixVersion,
           ...(instFragment ? { instrumentFragment: instFragment } : {}),
         },
         env
@@ -216,6 +229,7 @@ export function useBuildResult(): DerivedBuild {
     profile,
     baseDictionary,
     systemId,
+    fixVersionChoice,
     selections,
     slotValues,
     mode,

@@ -44,6 +44,9 @@ export function reducer(state: AppState, action: Action): AppState {
       return action.db
         ? { ...state, instrumentDb: action.db, instrumentDbIssues: action.issues }
         : { ...state, instrumentDbIssues: action.issues };
+    case 'set-fix-version':
+      // Dictionary reloads via the AppProvider effect; build re-derives.
+      return { ...state, fixVersion: action.fixVersion, baseDictionary: undefined };
     case 'select-system':
       // Retargeting (§3.8): keep selections and slot values; anything that
       // no longer resolves surfaces as findings — never silent breakage.
@@ -103,6 +106,7 @@ export function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         systemId: s.systemId || state.systemId,
+        fixVersion: s.fixVersion,
         selections: s.selections,
         slotValues: s.slotValues,
         mode: s.mode,

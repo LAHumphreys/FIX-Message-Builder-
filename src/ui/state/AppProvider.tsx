@@ -7,8 +7,8 @@ import { DispatchContext, StateContext } from './context.ts';
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // Load the base dictionary whenever the profile's FIX version changes.
-  const fixVersion = state.profile?.fixVersion;
+  // Load the base dictionary whenever the effective FIX version changes.
+  const fixVersion = state.fixVersion === 'profile' ? state.profile?.fixVersion : state.fixVersion;
   useEffect(() => {
     if (!fixVersion) return;
     let cancelled = false;

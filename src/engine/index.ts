@@ -31,6 +31,8 @@ export * from './build/group.ts';
 export * from './render/json/render.ts';
 export * from './scenario/scenario.ts';
 export * from './serialize/canonicalJson.ts';
+export * from './workspace/types.ts';
+export * from './workspace/memory.ts';
 export * from './instrument/types.ts';
 export * from './instrument/csv.ts';
 export * from './instrument/db.ts';

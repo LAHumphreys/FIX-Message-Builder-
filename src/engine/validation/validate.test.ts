@@ -216,10 +216,24 @@ describe('duplicate-tag and header-trailer-order', () => {
     expect(validateMessage(msg, dict).filter((f) => f.ruleId === 'duplicate-tag')).toHaveLength(0);
   });
 
-  it('flags header fields composed after body fields', () => {
+  it('does not flag top-level composition order (the renderer reorders it)', () => {
     const msg = msgD([field(11, 'X', src), field(54, '1', src), field(49, 'ME', src)]);
+    expect(validateMessage(msg, dict).filter((f) => f.ruleId === 'header-trailer-order')).toEqual(
+      []
+    );
+  });
+
+  it('flags header/trailer tags nested inside group entries', () => {
+    const msg: FixMessage = {
+      beginString: 'FIX.4.4',
+      msgType: 'E',
+      fields: [
+        field(49, 'ME', src),
+        group(73, [[field(11, 'A', src), field(49, 'SNEAKY', src)]], src),
+      ],
+    };
     const findings = validateMessage(msg, dict).filter((f) => f.ruleId === 'header-trailer-order');
-    expect(findings).toMatchObject([{ tag: 49 }]);
+    expect(findings).toMatchObject([{ tag: 49, path: '73[0]/49' }]);
   });
 });
 

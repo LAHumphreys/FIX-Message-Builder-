@@ -1,6 +1,7 @@
 import type {
   BatchRow,
   BuildMode,
+  FixVersionId,
   Dictionary,
   Finding,
   InstrumentDb,
@@ -22,6 +23,8 @@ export interface AppState {
   /** Base dictionary for the active FIX version (loaded async). */
   readonly baseDictionary: Dictionary | undefined;
   readonly systemId: string | undefined;
+  /** 'profile' follows the profile's declared default. */
+  readonly fixVersion: FixVersionId | 'profile';
   /** dimensionId → optionId (or instrument key for instrument dimensions). */
   readonly selections: Readonly<Record<string, string>>;
   /** tag → user-entered value (single mode; shared defaults in group modes). */
@@ -54,6 +57,7 @@ export type Action =
       readonly issues: readonly InstrumentDbIssue[];
     }
   | { readonly type: 'select-system'; readonly systemId: string }
+  | { readonly type: 'set-fix-version'; readonly fixVersion: FixVersionId | 'profile' }
   | { readonly type: 'select-option'; readonly dimensionId: string; readonly optionId: string }
   | { readonly type: 'set-slot'; readonly tag: number; readonly value: string }
   | { readonly type: 'clear-slot'; readonly tag: number }
@@ -87,6 +91,7 @@ export const initialState: AppState = {
   instrumentDbIssues: [],
   baseDictionary: undefined,
   systemId: undefined,
+  fixVersion: 'profile',
   selections: {},
   slotValues: {},
   mode: 'auto',
