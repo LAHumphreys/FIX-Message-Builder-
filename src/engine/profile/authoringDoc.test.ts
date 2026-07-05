@@ -139,18 +139,22 @@ describe('PROFILE-AUTHORING.md examples', () => {
     }
   });
 
-  it('the instrument DB JSON example loads cleanly', () => {
-    const dbBlock = jsonBlocks
+  it('every instrument DB JSON example loads cleanly', () => {
+    const dbBlocks = jsonBlocks
       .map(parseExample)
-      .find(
+      .filter(
         (p): p is Record<string, unknown> =>
           typeof p === 'object' && p !== null && !Array.isArray(p) && 'instruments' in p
       );
-    expect(dbBlock, 'the §13 instrument DB example').toBeDefined();
-    const { db, issues } = parseInstrumentDbJson(JSON.stringify(dbBlock));
-    expect(issues.filter((i) => i.severity === 'error')).toEqual([]);
-    expect(db!.instruments.size).toBeGreaterThanOrEqual(1);
-    expect(db!.strategies.size).toBeGreaterThanOrEqual(1);
+    expect(dbBlocks.length, 'instrument DB examples').toBeGreaterThanOrEqual(1);
+    const parsedDbs = dbBlocks.map((block) => {
+      const { db, issues } = parseInstrumentDbJson(JSON.stringify(block));
+      expect(issues.filter((i) => i.severity === 'error')).toEqual([]);
+      expect(db!.instruments.size).toBeGreaterThanOrEqual(1);
+      return db!;
+    });
+    // The §13 reference example must also demonstrate strategies.
+    expect(parsedDbs.some((db) => db.strategies.size >= 1)).toBe(true);
   });
 
   it('the instrument DB CSV example loads cleanly', () => {

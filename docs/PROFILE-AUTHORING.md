@@ -529,6 +529,66 @@ capabilities do NOT merge: list every capability the child has.
   builder never interprets it; it is handed verbatim to the internal host
   page with every send. Inherits through `extends` like other properties.
 
+### Recipe: defaulting the client (Parties) and Account
+
+Client identity and account are per-system facts, so they belong in a
+fragment listed in the system's `fragments` (alongside the session
+fragment). On FIX 4.3+ the client is a **Parties group** entry with
+PartyRole(452) = `3` (Client ID); the account is plain Account(1):
+
+```json
+"fragments": {
+  "client-east": {
+    "label": "Client & account: EAST",
+    "ops": [
+      {
+        "op": "group",
+        "countTag": 453,
+        "mode": "append",
+        "entries": [
+          [
+            { "op": "set", "tag": 448, "value": "YOUR-CLIENT-CODE" },
+            { "op": "set", "tag": 447, "value": "D" },
+            { "op": "set", "tag": 452, "value": "3" }
+          ]
+        ]
+      },
+      {
+        "op": "slot",
+        "tag": 1,
+        "slot": { "tag": 1, "label": "Account", "type": "string", "default": "DEFAULT-ACC" }
+      }
+    ]
+  }
+}
+```
+
+then `"fragments": ["session-east", "client-east"]` on the system. Notes:
+
+- **PartyIDSource(447)**: `D` = proprietary/custom code (the usual choice
+  for house client codes); `C` = generally accepted market participant id.
+  **PartyRole(452)** values you are most likely to add: `3` client ID,
+  `1` executing firm, `11` order origination trader, `12` executing trader.
+- `mode: "append"` matters: each fragment's entries ADD to the group, so a
+  flow or dimension fragment can append further party entries (an executing
+  trader, an algo id) without wiping the system-level client. Use
+  `"replace"` only when a venue needs the group rebuilt wholesale.
+- Account as a **slot with a `default`** (shown above) pre-fills tag 1 but
+  keeps it editable per order — and in basket/list modes it becomes a grid
+  column, giving per-row accounts for free. If the account must never be
+  edited, use `{ "op": "set", "tag": 1, "value": "…" }` instead; if two
+  systems share flows but differ in account, put the `set` in each system's
+  `finalFragment` so it always wins.
+- Different client code per system pair (UAT vs DEV): give each system its
+  own `client-*` fragment, or rely on `extends` — a child that sets
+  `fragments` replaces the parent's list wholesale, so repeat the shared ids.
+- **FIX 4.2 has no Parties group**: use ClientID(109) —
+  `{ "op": "set", "tag": 109, "value": "YOUR-CLIENT-CODE" }` — and keep it
+  in a separate fragment from the 4.3+ Parties block if the same profile
+  serves both versions (declare both; the validator flags whichever tag the
+  active dictionary does not know, and you can mute that with a
+  `validationPolicy` override on the version where it is expected).
+
 ---
 
 ## 9. `dimensions` — the selector dropdowns
@@ -599,7 +659,8 @@ FIRST and the catch-all LAST.
           { "role": "securityIdSource", "from": { "literal": "4" } },
           { "role": "symbol",           "from": { "firstOf": [ { "scheme": "exchangeSymbol" }, { "scheme": "isin" } ] } },
           { "role": "securityExchange", "from": { "attr": "mic" } },
-          { "role": "securityType",     "from": { "attr": "securityType" } }
+          { "role": "securityType",     "from": { "attr": "securityType" } },
+          { "role": "cfiCode",          "from": { "attr": "cfiCode" } }
         ],
         "altIds": [ { "from": { "scheme": "exchangeSymbol" }, "sourceCode": "8" } ]
       }
@@ -612,6 +673,18 @@ FIRST and the catch-all LAST.
           { "role": "securityId",       "from": { "scheme": "custom:house" }, "required": true },
           { "role": "securityIdSource", "from": { "literal": "8" } },
           { "role": "symbol",           "from": { "firstOf": [ { "scheme": "custom:house" }, { "scheme": "exchangeSymbol" } ] } }
+        ]
+      }
+    ]
+  },
+  "ric-primary": {
+    "variants": [
+      {
+        "emit": [
+          { "role": "symbol",           "from": { "scheme": "ric" }, "required": true },
+          { "role": "securityId",       "from": { "scheme": "isin" } },
+          { "role": "securityIdSource", "from": { "literal": "4" } },
+          { "role": "cfiCode",          "from": { "firstOf": [ { "attr": "cfiCode" }, { "literal": "ESXXXX" } ] } }
         ]
       }
     ]
@@ -641,6 +714,63 @@ renders). `altIds` emits the SecurityAltID repeating group (454/455/456);
 
 Common SecurityIDSource(22) values: `1`=CUSIP, `2`=SEDOL, `4`=ISIN,
 `5`=RIC, `8`=Exchange symbol, `A`=Bloomberg.
+
+### Recipe: one record, N systems, N symbologies
+
+When different systems expect different values in Symbol(55) /
+SecurityID(48), do NOT create per-system instrument records. Store **every
+identifier once** on the record, one `schemes` entry per symbol type:
+
+```json
+{
+  "schemaVersion": 1,
+  "instruments": [
+    {
+      "key": "ACME",
+      "name": "Acme Corp",
+      "schemes": {
+        "isin": "GB0000000001",
+        "exchangeSymbol": "ACME",
+        "ric": "ACME.L",
+        "bloomberg": "ACME LN Equity",
+        "custom:house": "H-000123"
+      },
+      "attrs": { "securityType": "CS", "currency": "GBP", "mic": "XLON", "cfiCode": "ESVUFR" }
+    }
+  ]
+}
+```
+
+Then write **one convention per symbology** (as above: `isin-decomposed`,
+`house-composed`, `ric-primary`…) and point each system at the right one via
+its `convention` property (§8). Selecting a different target system in the UI
+re-renders the same record through that system's convention — 55/48/22
+change with no other edits. Use `firstOf` chains for records that lack the
+preferred identifier, and `required: true` on identifiers the venue rejects
+messages without (missing → visible warning, message still renders).
+
+Scheme names are free-form: invent one per symbol type your environment uses
+(`ric`, `bloomberg`, `sedol`, `custom:<house system>`…) and use them
+consistently between the instrument file and the conventions.
+
+### Recipe: CFI code (461)
+
+`cfiCode` is an identity role like any other — placement writes it to
+CFICode(461) on orders, LegCFICode(608) on legs, UnderlyingCFICode(463) on
+underlyings. Source it per instrument from an attr, with an optional
+class-level fallback:
+
+- Per-record: put `"cfiCode": "ESVUFR"` in the record's `attrs`, emit with
+  `{ "role": "cfiCode", "from": { "attr": "cfiCode" } }`.
+- Fallback for a whole variant (e.g. all common stock):
+  `{ "from": { "firstOf": [ { "attr": "cfiCode" }, { "literal": "ESXXXX" } ] } }`.
+- Venues that want CFI **instead of** SecurityType(167): emit `cfiCode` and
+  simply do not emit `securityType` in that convention (or that variant).
+  Venues that want both: emit both.
+- Pre-FIX-5.0 multileg note: legs have no LegPutOrCall, so option legs carry
+  put/call inside LegCFICode(608) — gate with a
+  `"when": { "fixVersion": ["FIX.4.2", "FIX.4.4"] }` variant if you trade
+  option strategies there.
 
 ---
 
