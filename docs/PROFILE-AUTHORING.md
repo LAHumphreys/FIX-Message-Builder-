@@ -5,6 +5,11 @@ a human) with **no access to the FIX Message Builder source code** can build a
 correct, working profile from an environment specification (rules of
 engagement, FIX spec documents, onboarding guides). Follow it top to bottom.
 
+> Maintainers: every `json` code block in this file is parsed by the real
+> profile loader in CI (`src/engine/profile/authoringDoc.test.ts`), so the
+> examples cannot drift from the implementation. If you change the profile
+> format, this document must be updated for the build to stay green.
+
 ---
 
 ## 1. Context: what you are building
@@ -222,11 +227,22 @@ builds in one browser session.
 A fragment is `{ "label": "...", "ops": [...] }`. The five op types:
 
 ```json
-{ "op": "set", "tag": 40, "value": "2" }
-{ "op": "setGenerated", "tag": 11, "generator": "clOrdId" }
-{ "op": "slot", "tag": 38, "slot": { "tag": 38, "label": "Quantity", "type": "decimal", "required": true } }
-{ "op": "remove", "tag": 21 }
-{ "op": "group", "countTag": 957, "mode": "append", "entries": [ [ ...ops... ], [ ...ops... ] ] }
+[
+  { "op": "set", "tag": 40, "value": "2" },
+  { "op": "setGenerated", "tag": 11, "generator": "clOrdId" },
+  {
+    "op": "slot",
+    "tag": 38,
+    "slot": { "tag": 38, "label": "Quantity", "type": "decimal", "required": true }
+  },
+  { "op": "remove", "tag": 21 },
+  {
+    "op": "group",
+    "countTag": 957,
+    "mode": "append",
+    "entries": [[{ "op": "set", "tag": 958, "value": "ParamName" }]]
+  }
+]
 ```
 
 - `set` — a fixed constant.
@@ -286,9 +302,15 @@ the RECOMMENDED shape whenever the venue defines separate tag numbers per
 level — each level is just another slot:
 
 ```json
-{ "op": "slot", "tag": 7010, "slot": { "tag": 7010, "label": "Level 1 qty", "type": "decimal", "required": true } },
-{ "op": "slot", "tag": 7011, "slot": { "tag": 7011, "label": "Level 2 qty", "type": "decimal" } },
-{ "op": "slot", "tag": 7012, "slot": { "tag": 7012, "label": "Level 3 qty", "type": "decimal" } }
+[
+  {
+    "op": "slot",
+    "tag": 7010,
+    "slot": { "tag": 7010, "label": "Level 1 qty", "type": "decimal", "required": true }
+  },
+  { "op": "slot", "tag": 7011, "slot": { "tag": 7011, "label": "Level 2 qty", "type": "decimal" } },
+  { "op": "slot", "tag": 7012, "slot": { "tag": 7012, "label": "Level 3 qty", "type": "decimal" } }
+]
 ```
 
 Optional levels: mark only level 1 `required`; leave the rest optional with
