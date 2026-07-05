@@ -18,3 +18,4 @@ coverage/
 # Logs
 *.log
 npm-debug.log*
+dist-preview/
