@@ -805,6 +805,43 @@ exports match it exactly:
 
 You may define several mappings; the user picks one in the UI.
 
+### Recipe: custom-named JSON fields with per-destination values
+
+To surface a field like `"DESTINATION": "…"` in the JSON output whose value
+depends on the target system, model it as a **custom tag** carried by the
+message; the JSON key and the per-system value are then specified in the
+places that already own naming and routing:
+
+1. Declare the tag once in the profile `dictionaryOverlay`, and let its
+   _name_ be the JSON key you want:
+
+```json
+"dictionaryOverlay": {
+  "fields": { "20990": { "name": "DESTINATION", "type": "STRING" } }
+}
+```
+
+2. Set the per-destination value in each system's `finalFragment`
+   (stage 7 — nothing can override it), e.g.
+   `{ "op": "set", "tag": 20990, "value": "EAST-UAT-GW" }` in one system's
+   final fragment and a different value in the other's. Systems that
+   `extends` a parent inherit it unless their own final fragment re-sets it.
+
+3. With `keyStyle: "name"` the JSON key is the overlay name (`DESTINATION`)
+   automatically. If the mapping uses tag keys or the name is taken, use an
+   alias instead: `"keyStyle": { "alias": { "20990": "DESTINATION" } }`.
+
+The tag also shows in the tag=value view (useful when debugging routing);
+because the overlay declares it, validation stays quiet. If the downstream
+consumer must NOT receive it as a FIX tag in other exports, remember
+`omitTags` is per-mapping — a second mapping without the alias can omit it.
+
+Static (non-system-dependent) wrapper fields belong in the mapping's
+`envelope.message` instead. Envelope statics are per-mapping, not
+per-system: if you need a per-system value _outside_ the message object,
+carry it as a tag as above, or raise it — per-system envelope overrides are
+an easy extension.
+
 ---
 
 ## 12. `validationPolicy` — muting known quirks
