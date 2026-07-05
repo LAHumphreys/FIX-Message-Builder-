@@ -14,6 +14,10 @@ export interface Provenance {
   readonly sourceId: string;
   /** Human-readable label for UI display, e.g. "Route: DMA London". */
   readonly sourceLabel: string;
+  /** Merge stage that applied the value (template/system/dimension/...). */
+  readonly stage?: string;
+  /** Generator reference, when the value was produced at build time. */
+  readonly via?: string;
   /** Present when this value replaced one set earlier in the merge order. */
   readonly overwrote?: Provenance;
 }
