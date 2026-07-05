@@ -51,3 +51,8 @@ Full detail in **docs/WORKFLOW.md**. The short version:
 - Every field carries provenance (which fragment/input set it, what it overwrote).
 - Fragment merge order and collision handling are defined in BRIEF.md §3.4 — do
   not improvise precedence rules.
+- **docs/PROFILE-AUTHORING.md must track the profile format.** Its JSON
+  examples are parsed by the real loader in CI
+  (`src/engine/profile/authoringDoc.test.ts`); when the profile, instrument-DB,
+  or scenario formats change, update the guide and `docs/schemas/*` in the
+  same change.

@@ -1,0 +1,23 @@
+{
+  "fixVersion": "FIX.4.4",
+  "mode": "single",
+  "name": "Plain limit",
+  "profile": {
+    "name": "Meridian Demo",
+    "version": "0.4.0"
+  },
+  "renderer": {
+    "delimiter": "pipe",
+    "kind": "tagvalue"
+  },
+  "schemaVersion": 1,
+  "selections": {
+    "flow": "limit",
+    "instrument": "MERBANK"
+  },
+  "slotValues": {
+    "38": "100",
+    "44": "25.10"
+  },
+  "systemId": "alpha-uat"
+}

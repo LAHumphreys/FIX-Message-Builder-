@@ -90,5 +90,26 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # The Pages backend intermittently rejects deployments with a generic
+      # "Deployment failed, try again later" (seen repeatedly on rapid
+      # consecutive pushes). Retry twice with a pause before giving up.
       - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - if: steps.deployment.outcome == 'failure'
+        name: Pause before retry
+        run: sleep 45
+
+      - id: retry
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - if: steps.deployment.outcome == 'failure' && steps.retry.outcome == 'failure'
+        name: Pause before final retry
+        run: sleep 90
+
+      - id: final-retry
+        if: steps.deployment.outcome == 'failure' && steps.retry.outcome == 'failure'
         uses: actions/deploy-pages@v4

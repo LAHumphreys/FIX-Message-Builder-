@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fix-message-builder/scenario.schema.json",
+  "title": "FIX Message Builder scenario",
+  "description": "Serialized builder state (docs/BRIEF.md §3.8). Unknown keys are preserved by the app; scenarios round-trip losslessly with canonical (sorted-key) formatting.",
+  "type": "object",
+  "required": ["schemaVersion", "profile", "fixVersion", "mode", "systemId", "renderer"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "name": { "type": "string" },
+    "profile": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "fixVersion": { "enum": ["FIX.4.2", "FIX.4.4", "FIX.5.0SP2"] },
+    "mode": { "enum": ["single", "batch", "list", "multileg"] },
+    "systemId": { "type": "string" },
+    "selections": {
+      "type": "object",
+      "description": "dimensionId → optionId (or instrument/strategy key for instrument dimensions)",
+      "additionalProperties": { "type": "string" }
+    },
+    "slotValues": {
+      "type": "object",
+      "description": "tag → value; shared defaults in batch/list modes",
+      "additionalProperties": { "type": "string" }
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "instrument": { "type": "string" },
+          "slotValues": { "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      }
+    },
+    "legOverrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ratioQty": { "type": "string" },
+          "side": { "type": "string" },
+          "price": { "type": "string" },
+          "slotValues": { "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      }
+    },
+    "renderer": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "delimiter"],
+          "properties": {
+            "kind": { "const": "tagvalue" },
+            "delimiter": { "enum": ["soh", "pipe", "caretA"] },
+            "omitLengthAndChecksum": { "type": "boolean" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "mapping"],
+          "properties": {
+            "kind": { "const": "json" },
+            "mapping": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind"],
+          "properties": { "kind": { "const": "annotated" } }
+        }
+      ]
+    }
+  }
+}

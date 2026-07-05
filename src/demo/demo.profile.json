@@ -1,0 +1,1298 @@
+{
+  "schemaVersion": 1,
+  "name": "Meridian Demo",
+  "version": "0.7.0",
+  "fixVersion": "FIX.4.4",
+  "dictionaryOverlay": {
+    "fields": {
+      "7001": [
+        "SlicerStyle",
+        "INT",
+        {
+          "1": "TWAP",
+          "2": "VWAP",
+          "3": "POV"
+        }
+      ],
+      "7002": ["SliceQty", "QTY"],
+      "7003": ["SliceIntervalMs", "INT"],
+      "7004": ["SliceRandomize", "BOOLEAN"],
+      "20101": ["MeridianGateway", "STRING"],
+      "20102": ["MeridianDeskCode", "STRING"]
+    }
+  },
+  "templates": {
+    "D": "tmpl-new-order-single",
+    "E:entry": "tmpl-list-entry"
+  },
+  "generators": {
+    "clOrdId": {
+      "kind": "template",
+      "template": "CLORD-{date:yyyyMMdd}-{seq:4}"
+    },
+    "listId": {
+      "kind": "shared",
+      "of": "listIdValue"
+    },
+    "listIdValue": {
+      "kind": "template",
+      "template": "L{date:yyyyMMdd}-{rand:4}"
+    },
+    "transactTime": {
+      "kind": "timestamp",
+      "precision": "micros"
+    },
+    "sendingTime": {
+      "kind": "timestamp",
+      "precision": "micros"
+    }
+  },
+  "fragments": {
+    "tmpl-new-order-single": {
+      "label": "NewOrderSingle base",
+      "ops": [
+        {
+          "op": "setGenerated",
+          "tag": 11,
+          "generator": "clOrdId"
+        },
+        {
+          "op": "set",
+          "tag": 21,
+          "value": "1"
+        },
+        {
+          "op": "setGenerated",
+          "tag": 60,
+          "generator": "transactTime"
+        }
+      ]
+    },
+    "session-alpha": {
+      "label": "Session: Alpha",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 49,
+          "value": "MERIDIAN-CLI"
+        },
+        {
+          "op": "set",
+          "tag": 56,
+          "value": "ALPHA-GW"
+        },
+        {
+          "op": "set",
+          "tag": 34,
+          "value": "1"
+        },
+        {
+          "op": "setGenerated",
+          "tag": 52,
+          "generator": "sendingTime"
+        }
+      ]
+    },
+    "session-omega": {
+      "label": "Session: Omega",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 49,
+          "value": "MERIDIAN-CLI"
+        },
+        {
+          "op": "set",
+          "tag": 56,
+          "value": "OMEGA-HUB"
+        },
+        {
+          "op": "set",
+          "tag": 20102,
+          "value": "DESK-7"
+        },
+        {
+          "op": "set",
+          "tag": 34,
+          "value": "1"
+        },
+        {
+          "op": "setGenerated",
+          "tag": 52,
+          "generator": "sendingTime"
+        }
+      ]
+    },
+    "final-alpha-uat": {
+      "label": "Enforced routing: ALPHA-UAT",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 20101,
+          "value": "ALPHA-UAT-GW"
+        }
+      ]
+    },
+    "final-alpha-dev": {
+      "label": "Enforced routing: ALPHA-DEV",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 20101,
+          "value": "ALPHA-DEV-GW"
+        }
+      ]
+    },
+    "final-omega": {
+      "label": "Enforced routing: OMEGA",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 20101,
+          "value": "OMEGA-LEGACY-GW"
+        }
+      ]
+    },
+    "flow-limit": {
+      "label": "Flow: Plain limit",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-slicer": {
+      "label": "Flow: SLICER algo",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Total quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Limit price",
+            "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 7001,
+          "slot": {
+            "tag": 7001,
+            "label": "Slicer style",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 7002,
+          "slot": {
+            "tag": 7002,
+            "label": "Slice quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 7003,
+          "slot": {
+            "tag": 7003,
+            "label": "Slice interval (ms)",
+            "type": "int",
+            "default": "5000"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 7004,
+          "slot": {
+            "tag": 7004,
+            "label": "Randomize slices",
+            "type": "bool",
+            "default": "N"
+          }
+        }
+      ]
+    },
+    "flow-basket": {
+      "label": "Flow: Basket",
+      "ops": [
+        {
+          "op": "setGenerated",
+          "tag": 66,
+          "generator": "listId"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 40,
+          "slot": {
+            "tag": 40,
+            "label": "Order type",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "2"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Limit price",
+            "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 99,
+          "slot": {
+            "tag": 99,
+            "label": "Stop price",
+            "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-multileg": {
+      "label": "Flow: Multileg",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Package price",
+            "type": "decimal"
+          }
+        }
+      ]
+    },
+    "tmpl-list-entry": {
+      "label": "List entry base",
+      "ops": [
+        {
+          "op": "setGenerated",
+          "tag": 11,
+          "generator": "clOrdId"
+        },
+        {
+          "op": "set",
+          "tag": 21,
+          "value": "1"
+        }
+      ]
+    },
+    "flow-market": {
+      "label": "Flow: Market",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "1"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-stop": {
+      "label": "Flow: Stop",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "3"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 99,
+          "slot": {
+            "tag": 99,
+            "label": "Stop price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-stop-limit": {
+      "label": "Flow: Stop limit",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "4"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 99,
+          "slot": {
+            "tag": 99,
+            "label": "Stop price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Limit price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-iceberg": {
+      "label": "Flow: Iceberg / reserve",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Limit price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 111,
+          "slot": {
+            "tag": 111,
+            "label": "Display quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 110,
+          "slot": {
+            "tag": 110,
+            "label": "Minimum fill quantity",
+            "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-peg-mid": {
+      "label": "Flow: Mid-price peg",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "P"
+        },
+        {
+          "op": "set",
+          "tag": 18,
+          "value": "M"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 211,
+          "slot": {
+            "tag": 211,
+            "label": "Peg offset",
+            "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 59,
+          "slot": {
+            "tag": 59,
+            "label": "Time in force",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "default": "0"
+          }
+        }
+      ]
+    },
+    "flow-moc": {
+      "label": "Flow: Market on close",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "1"
+        },
+        {
+          "op": "set",
+          "tag": 59,
+          "value": "7"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        }
+      ]
+    },
+    "flow-limit-gtd": {
+      "label": "Flow: Limit GTD",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "set",
+          "tag": 59,
+          "value": "6"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Limit price",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 432,
+          "slot": {
+            "tag": 432,
+            "label": "Expire date (YYYYMMDD)",
+            "type": "string",
+            "pattern": "^\\\\d{8}$"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 126,
+          "slot": {
+            "tag": 126,
+            "label": "Expire time (UTC, YYYYMMDD-HH:MM:SS)",
+            "type": "timestamp"
+          }
+        }
+      ]
+    },
+    "flow-broker-algo": {
+      "label": "Flow: Broker algo (847)",
+      "ops": [
+        {
+          "op": "set",
+          "tag": 40,
+          "value": "2"
+        },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": {
+            "tag": 38,
+            "label": "Quantity",
+            "type": "decimal",
+            "required": true
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": {
+            "tag": 44,
+            "label": "Limit price",
+            "type": "decimal"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 847,
+          "slot": {
+            "tag": 847,
+            "label": "Target strategy",
+            "type": "enum",
+            "enumSource": {
+              "kind": "dictionary"
+            },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 849,
+          "slot": {
+            "tag": 849,
+            "label": "Participation rate (%)",
+            "type": "decimal"
+          }
+        }
+      ]
+    }
+  },
+  "systems": [
+    {
+      "id": "alpha-uat",
+      "label": "ALPHA-UAT",
+      "fragments": ["session-alpha"],
+      "finalFragment": "final-alpha-uat",
+      "capabilities": ["slicer-v2", "lists"],
+      "convention": "isin-decomposed"
+    },
+    {
+      "id": "alpha-dev",
+      "label": "ALPHA-DEV",
+      "extends": "alpha-uat",
+      "finalFragment": "final-alpha-dev",
+      "capabilities": ["lists"]
+    },
+    {
+      "id": "omega-legacy",
+      "label": "OMEGA-LEGACY",
+      "fragments": ["session-omega"],
+      "finalFragment": "final-omega",
+      "capabilities": ["slicer-v2", "futures", "multileg"],
+      "dictionaryOverlay": {
+        "fields": {
+          "59": {
+            "enums": {
+              "X": "At Omega Close"
+            }
+          },
+          "7001": [
+            "LegacySliceMode",
+            "INT",
+            {
+              "1": "Clock Slice",
+              "2": "Volume Slice"
+            }
+          ],
+          "7003": ["LegacySliceIntervalSecs", "INT"]
+        }
+      },
+      "validationPolicy": {
+        "overrides": [
+          {
+            "rule": "enum-unknown",
+            "tag": 59,
+            "severity": "off"
+          }
+        ]
+      },
+      "convention": "house-composed"
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "flow",
+      "label": "Flow",
+      "kind": "options",
+      "required": true,
+      "options": [
+        {
+          "id": "market",
+          "label": "Market",
+          "fragment": "flow-market",
+          "msgType": "D"
+        },
+        {
+          "id": "limit",
+          "label": "Limit",
+          "fragment": "flow-limit",
+          "msgType": "D"
+        },
+        {
+          "id": "limit-gtd",
+          "label": "Limit (GTD)",
+          "fragment": "flow-limit-gtd",
+          "msgType": "D"
+        },
+        {
+          "id": "stop",
+          "label": "Stop",
+          "fragment": "flow-stop",
+          "msgType": "D"
+        },
+        {
+          "id": "stop-limit",
+          "label": "Stop limit",
+          "fragment": "flow-stop-limit",
+          "msgType": "D"
+        },
+        {
+          "id": "iceberg",
+          "label": "Iceberg / reserve",
+          "fragment": "flow-iceberg",
+          "msgType": "D"
+        },
+        {
+          "id": "peg-mid",
+          "label": "Mid-price peg",
+          "fragment": "flow-peg-mid",
+          "msgType": "D"
+        },
+        {
+          "id": "moc",
+          "label": "Market on close",
+          "fragment": "flow-moc",
+          "msgType": "D"
+        },
+        {
+          "id": "broker-algo",
+          "label": "Broker algo (847)",
+          "fragment": "flow-broker-algo",
+          "msgType": "D"
+        },
+        {
+          "id": "slicer",
+          "label": "SLICER algo",
+          "fragment": "flow-slicer",
+          "msgType": "D",
+          "availableOn": ["cap:slicer-v2"]
+        },
+        {
+          "id": "basket",
+          "label": "Basket",
+          "fragment": "flow-basket",
+          "msgType": "D",
+          "modes": ["batch", "list"],
+          "availableOn": ["cap:lists", "omega-legacy"]
+        },
+        {
+          "id": "multileg",
+          "label": "Multileg strategy",
+          "fragment": "flow-multileg",
+          "msgType": "AB",
+          "modes": ["multileg"],
+          "availableOn": ["cap:multileg"]
+        }
+      ]
+    },
+    {
+      "id": "instrument",
+      "label": "Instrument",
+      "kind": "instrument",
+      "required": true
+    }
+  ],
+  "validationPolicy": {
+    "rules": {
+      "unknown-tag": "info"
+    }
+  },
+  "conventions": {
+    "isin-decomposed": {
+      "variants": [
+        {
+          "when": {
+            "securityType": ["OPT"]
+          },
+          "emit": [
+            {
+              "role": "symbol",
+              "from": {
+                "scheme": "exchangeSymbol"
+              },
+              "required": true
+            },
+            {
+              "role": "securityType",
+              "from": {
+                "attr": "securityType"
+              }
+            },
+            {
+              "role": "securityExchange",
+              "from": {
+                "attr": "mic"
+              }
+            },
+            {
+              "role": "currency",
+              "from": {
+                "attr": "currency"
+              }
+            },
+            {
+              "role": "maturityMonthYear",
+              "from": {
+                "attr": "maturityMonthYear"
+              },
+              "required": true
+            },
+            {
+              "role": "strikePrice",
+              "from": {
+                "attr": "strikePrice"
+              },
+              "required": true
+            },
+            {
+              "role": "putOrCall",
+              "from": {
+                "attr": "putOrCall"
+              },
+              "required": true
+            },
+            {
+              "role": "optAttribute",
+              "from": {
+                "attr": "optAttribute"
+              }
+            },
+            {
+              "role": "contractMultiplier",
+              "from": {
+                "attr": "contractMultiplier"
+              }
+            }
+          ]
+        },
+        {
+          "when": {
+            "securityType": ["FUT"]
+          },
+          "emit": [
+            {
+              "role": "symbol",
+              "from": {
+                "scheme": "exchangeSymbol"
+              },
+              "required": true
+            },
+            {
+              "role": "securityType",
+              "from": {
+                "attr": "securityType"
+              }
+            },
+            {
+              "role": "securityExchange",
+              "from": {
+                "attr": "mic"
+              }
+            },
+            {
+              "role": "currency",
+              "from": {
+                "attr": "currency"
+              }
+            },
+            {
+              "role": "maturityMonthYear",
+              "from": {
+                "attr": "maturityMonthYear"
+              },
+              "required": true
+            },
+            {
+              "role": "contractMultiplier",
+              "from": {
+                "attr": "contractMultiplier"
+              }
+            }
+          ]
+        },
+        {
+          "emit": [
+            {
+              "role": "securityId",
+              "from": {
+                "scheme": "isin"
+              },
+              "required": true
+            },
+            {
+              "role": "securityIdSource",
+              "from": {
+                "literal": "4"
+              }
+            },
+            {
+              "role": "symbol",
+              "from": {
+                "firstOf": [
+                  {
+                    "scheme": "exchangeSymbol"
+                  },
+                  {
+                    "scheme": "isin"
+                  }
+                ]
+              }
+            },
+            {
+              "role": "securityExchange",
+              "from": {
+                "attr": "mic"
+              }
+            },
+            {
+              "role": "currency",
+              "from": {
+                "attr": "currency"
+              }
+            },
+            {
+              "role": "securityType",
+              "from": {
+                "attr": "securityType"
+              }
+            }
+          ],
+          "altIds": [
+            {
+              "from": {
+                "scheme": "exchangeSymbol"
+              },
+              "sourceCode": "8"
+            }
+          ]
+        }
+      ]
+    },
+    "house-composed": {
+      "variants": [
+        {
+          "emit": [
+            {
+              "role": "securityId",
+              "from": {
+                "scheme": "custom:omega"
+              },
+              "required": true
+            },
+            {
+              "role": "securityIdSource",
+              "from": {
+                "literal": "8"
+              }
+            },
+            {
+              "role": "symbol",
+              "from": {
+                "firstOf": [
+                  {
+                    "scheme": "custom:omega"
+                  },
+                  {
+                    "scheme": "exchangeSymbol"
+                  }
+                ]
+              }
+            },
+            {
+              "role": "currency",
+              "from": {
+                "attr": "currency"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "renderers": {
+    "json": {
+      "omega-gateway": {
+        "keyStyle": "name",
+        "groupKey": "countName",
+        "emitCounts": false,
+        "typedValues": true,
+        "omitTags": [8, 9, 10, 34, 49, 52, 56],
+        "envelope": {
+          "message": {
+            "target": "omega-gateway"
+          },
+          "messageKey": "order"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "fixVersion": "FIX.4.4",
+  "mode": "multileg",
+  "name": "Calendar spread",
+  "profile": {
+    "name": "Meridian Demo",
+    "version": "0.4.0"
+  },
+  "renderer": {
+    "delimiter": "pipe",
+    "kind": "tagvalue"
+  },
+  "schemaVersion": 1,
+  "selections": {
+    "flow": "multileg",
+    "instrument": "FCOR-CAL-U6Z6"
+  },
+  "slotValues": {
+    "38": "10"
+  },
+  "systemId": "omega-legacy"
+}

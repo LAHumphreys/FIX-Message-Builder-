@@ -1,0 +1,651 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fix-message-builder/profile.schema.json",
+  "title": "FIX Message Builder profile",
+  "description": "An environment definition: dictionary overlay, target systems, selector dimensions, fragments, generators, conventions, renderer configs, validation policy. See docs/BRIEF.md \u00a73.3.",
+  "type": "object",
+  "required": ["schemaVersion", "name", "version", "fixVersion", "systems"],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string"
+    },
+    "fixVersion": {
+      "enum": ["FIX.4.2", "FIX.4.4", "FIX.5.0SP2"]
+    },
+    "dictionaryOverlay": {
+      "$ref": "#/$defs/dictionaryOverlay"
+    },
+    "templates": {
+      "type": "object",
+      "description": "Base message-type template fragments keyed by MsgType(35); 'E:entry' keys the per-entry template for list mode.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "generators": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/generator"
+      }
+    },
+    "conventions": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/identityConvention"
+      }
+    },
+    "fragments": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/fragment"
+      }
+    },
+    "systems": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/system"
+      }
+    },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dimension"
+      }
+    },
+    "renderers": {
+      "type": "object",
+      "properties": {
+        "json": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/jsonMapping"
+          }
+        }
+      }
+    },
+    "validationPolicy": {
+      "$ref": "#/$defs/validationPolicy"
+    }
+  },
+  "$defs": {
+    "fragmentOp": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["op", "tag", "value"],
+          "properties": {
+            "op": {
+              "const": "set"
+            },
+            "tag": {
+              "type": "integer"
+            },
+            "value": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["op", "tag", "generator"],
+          "properties": {
+            "op": {
+              "const": "setGenerated"
+            },
+            "tag": {
+              "type": "integer"
+            },
+            "generator": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["op", "tag", "slot"],
+          "properties": {
+            "op": {
+              "const": "slot"
+            },
+            "tag": {
+              "type": "integer"
+            },
+            "slot": {
+              "$ref": "#/$defs/slotSpec"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["op", "tag"],
+          "properties": {
+            "op": {
+              "const": "remove"
+            },
+            "tag": {
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["op", "countTag", "entries"],
+          "properties": {
+            "op": {
+              "const": "group"
+            },
+            "countTag": {
+              "type": "integer"
+            },
+            "mode": {
+              "enum": ["append", "replace"]
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/fragmentOp"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "slotSpec": {
+      "type": "object",
+      "required": ["tag", "label", "type"],
+      "properties": {
+        "tag": {
+          "type": "integer"
+        },
+        "label": {
+          "type": "string"
+        },
+        "type": {
+          "enum": ["string", "int", "decimal", "enum", "timestamp", "bool"]
+        },
+        "enumSource": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "dictionary"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "const": "inline"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["value", "label"],
+                    "properties": {
+                      "value": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "default": {
+          "type": "string"
+        },
+        "generatorDefault": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "pattern": {
+          "type": "string"
+        }
+      }
+    },
+    "fragment": {
+      "type": "object",
+      "required": ["ops"],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "ops": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/fragmentOp"
+          }
+        },
+        "meta": {
+          "type": "object"
+        }
+      }
+    },
+    "generator": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "scope"],
+          "properties": {
+            "kind": {
+              "const": "sequence"
+            },
+            "scope": {
+              "enum": ["message", "batch", "persistent"]
+            },
+            "start": {
+              "type": "integer"
+            },
+            "pad": {
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "precision"],
+          "properties": {
+            "kind": {
+              "const": "timestamp"
+            },
+            "precision": {
+              "enum": ["seconds", "millis", "micros"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "template"],
+          "properties": {
+            "kind": {
+              "const": "template"
+            },
+            "template": {
+              "type": "string",
+              "description": "Placeholders: {date:yyyyMMdd}, {seq:4}, {rand:8}"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "of"],
+          "properties": {
+            "kind": {
+              "const": "shared"
+            },
+            "of": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "style"],
+          "properties": {
+            "kind": {
+              "const": "random"
+            },
+            "style": {
+              "enum": ["hex", "uuid"]
+            },
+            "length": {
+              "type": "integer"
+            }
+          }
+        }
+      ]
+    },
+    "valueSource": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["scheme"],
+          "properties": {
+            "scheme": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["attr"],
+          "properties": {
+            "attr": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["literal"],
+          "properties": {
+            "literal": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["firstOf"],
+          "properties": {
+            "firstOf": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/valueSource"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "identityConvention": {
+      "type": "object",
+      "required": ["variants"],
+      "properties": {
+        "variants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["emit"],
+            "properties": {
+              "when": {
+                "type": "object",
+                "properties": {
+                  "securityType": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "fixVersion": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "emit": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["role", "from"],
+                  "properties": {
+                    "role": {
+                      "enum": [
+                        "symbol",
+                        "securityId",
+                        "securityIdSource",
+                        "securityType",
+                        "securityExchange",
+                        "cfiCode",
+                        "currency",
+                        "maturityMonthYear",
+                        "maturityDate",
+                        "maturityDay",
+                        "strikePrice",
+                        "putOrCall",
+                        "optAttribute",
+                        "contractMultiplier",
+                        "securitySubType"
+                      ]
+                    },
+                    "from": {
+                      "$ref": "#/$defs/valueSource"
+                    },
+                    "required": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              },
+              "altIds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["from", "sourceCode"],
+                  "properties": {
+                    "from": {
+                      "$ref": "#/$defs/valueSource"
+                    },
+                    "sourceCode": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "dictionaryOverlay": {
+      "type": "object",
+      "properties": {
+        "fields": {
+          "type": "object",
+          "description": "Keyed by tag. Tuple form [name, type, enums?] defines/replaces; object form {name?, type?, enums?, enumMode?} patches.",
+          "additionalProperties": true
+        },
+        "components": {
+          "type": "object"
+        },
+        "messages": {
+          "type": "object"
+        }
+      }
+    },
+    "system": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "extends": {
+          "type": "string",
+          "description": "Single-level; set properties replace, unset inherit."
+        },
+        "fragments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "finalFragment": {
+          "type": "string",
+          "description": "Applied after all other stages \u2014 enforced fields cannot be clobbered."
+        },
+        "dictionaryOverlay": {
+          "$ref": "#/$defs/dictionaryOverlay"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "convention": {
+          "type": "string"
+        },
+        "validationPolicy": {
+          "$ref": "#/$defs/validationPolicy"
+        },
+        "transportHints": {
+          "description": "Opaque per-system routing data handed to the embedded-mode host page with every send (see docs/INTERNAL-HOST.md). Never interpreted by the builder; inherits through extends."
+        }
+      }
+    },
+    "dimension": {
+      "type": "object",
+      "required": ["id", "kind"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": ["options", "instrument"]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "fragment": {
+                "type": "string"
+              },
+              "msgType": {
+                "type": "string"
+              },
+              "modes": {
+                "type": "array",
+                "items": {
+                  "enum": ["single", "batch", "list", "multileg"]
+                }
+              },
+              "availableOn": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "System ids or cap:<tag> tokens; OR semantics; absent = everywhere."
+              }
+            }
+          }
+        }
+      }
+    },
+    "jsonMapping": {
+      "type": "object",
+      "required": ["keyStyle", "groupKey", "emitCounts", "typedValues"],
+      "properties": {
+        "keyStyle": {
+          "oneOf": [
+            {
+              "enum": ["tag", "name"]
+            },
+            {
+              "type": "object",
+              "required": ["alias"],
+              "properties": {
+                "alias": {
+                  "type": "object"
+                }
+              }
+            }
+          ]
+        },
+        "groupKey": {
+          "oneOf": [
+            {
+              "enum": ["countName", "countTag"]
+            },
+            {
+              "type": "object",
+              "required": ["alias"],
+              "properties": {
+                "alias": {
+                  "type": "object"
+                }
+              }
+            }
+          ]
+        },
+        "emitCounts": {
+          "type": "boolean"
+        },
+        "typedValues": {
+          "type": "boolean"
+        },
+        "omitTags": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "envelope": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "object"
+            },
+            "messageKey": {
+              "type": "string"
+            },
+            "topLevelKey": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "validationPolicy": {
+      "type": "object",
+      "properties": {
+        "rules": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": ["error", "warning", "info", "off"]
+          }
+        },
+        "overrides": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["rule", "severity"],
+            "properties": {
+              "rule": {
+                "type": "string"
+              },
+              "msgType": {
+                "type": "string"
+              },
+              "tag": {
+                "type": "integer"
+              },
+              "severity": {
+                "enum": ["error", "warning", "info", "off"]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

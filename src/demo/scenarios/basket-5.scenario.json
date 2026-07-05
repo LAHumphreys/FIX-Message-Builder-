@@ -1,0 +1,59 @@
+{
+  "fixVersion": "FIX.4.4",
+  "mode": "batch",
+  "name": "Basket of 5",
+  "profile": {
+    "name": "Meridian Demo",
+    "version": "0.4.0"
+  },
+  "renderer": {
+    "kind": "json",
+    "mapping": "omega-gateway"
+  },
+  "rows": [
+    {
+      "instrument": "MERBANK",
+      "slotValues": {
+        "38": "100",
+        "44": "25.10"
+      }
+    },
+    {
+      "instrument": "CORIUM",
+      "slotValues": {
+        "38": "250",
+        "44": "8.42"
+      }
+    },
+    {
+      "instrument": "SOLSTICE",
+      "slotValues": {
+        "38": "75",
+        "44": "112.00",
+        "54": "2"
+      }
+    },
+    {
+      "instrument": "KESTREL",
+      "slotValues": {
+        "38": "300",
+        "44": "3.55"
+      }
+    },
+    {
+      "instrument": "HALCYON",
+      "slotValues": {
+        "38": "50",
+        "44": "61.75"
+      }
+    }
+  ],
+  "schemaVersion": 1,
+  "selections": {
+    "flow": "basket"
+  },
+  "slotValues": {
+    "54": "1"
+  },
+  "systemId": "alpha-uat"
+}

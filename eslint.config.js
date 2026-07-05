@@ -26,6 +26,13 @@ export default tseslint.config(
     },
   },
   {
+    // FIX wire format is SOH-delimited; tests legitimately match \x01.
+    files: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'no-control-regex': 'off',
+    },
+  },
+  {
     // The engine layer is pure TypeScript: no DOM, no browser APIs, no React,
     // no imports from the UI layer, no runtime dependencies. This block is the
     // lint enforcement of that boundary (see docs/BRIEF.md §6).

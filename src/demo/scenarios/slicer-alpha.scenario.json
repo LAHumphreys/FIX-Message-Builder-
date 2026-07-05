@@ -1,0 +1,24 @@
+{
+  "fixVersion": "FIX.4.4",
+  "mode": "single",
+  "name": "SLICER on Alpha",
+  "profile": {
+    "name": "Meridian Demo",
+    "version": "0.4.0"
+  },
+  "renderer": {
+    "delimiter": "pipe",
+    "kind": "tagvalue"
+  },
+  "schemaVersion": 1,
+  "selections": {
+    "flow": "slicer",
+    "instrument": "MERBANK"
+  },
+  "slotValues": {
+    "38": "5000",
+    "44": "25.10",
+    "7002": "500"
+  },
+  "systemId": "alpha-uat"
+}
