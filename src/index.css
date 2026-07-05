@@ -247,7 +247,8 @@ textarea {
    scrolls as one — without this, the fixed-height grid squeezes each section
    into a small independently-scrolling box. */
 @media (max-width: 900px) {
-  .app-header {
+  .app-header,
+  .panel-header {
     flex-wrap: wrap;
     row-gap: 0.15rem;
   }

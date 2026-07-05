@@ -4,6 +4,11 @@ This guide is **self-contained** and written so an AI assistant (or a human)
 can stand up the internal transport integration without reading the app's
 source code. Expected effort: copy two files, fill three marked TODO blocks.
 
+> Deploying for the first time? Follow the ordered checklist in
+> [internal-host/QUICKSTART.md](internal-host/QUICKSTART.md) — it sequences
+> these steps, ships parse-clean starter configs, and calls out the common
+> time sinks. This document is the reference behind it.
+
 ## 1. What this is
 
 The FIX Message Builder is a static app that **never makes network

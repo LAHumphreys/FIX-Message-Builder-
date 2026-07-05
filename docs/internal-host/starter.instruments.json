@@ -1,0 +1,18 @@
+{
+  "$schema": "../schemas/instruments.schema.json",
+  "schemaVersion": 1,
+  "instruments": [
+    {
+      "key": "RENAME-1",
+      "name": "Rename Me Corp",
+      "schemes": { "isin": "XX0000000001", "exchangeSymbol": "RNM1" },
+      "attrs": { "securityType": "CS", "currency": "XXX" }
+    },
+    {
+      "key": "RENAME-2",
+      "name": "Placeholder Industries",
+      "schemes": { "isin": "XX0000000002", "exchangeSymbol": "RNM2" },
+      "attrs": { "securityType": "CS", "currency": "XXX" }
+    }
+  ]
+}

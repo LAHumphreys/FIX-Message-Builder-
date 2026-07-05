@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>FIX Message Builder — internal host</title>
+    <link rel="icon" type="image/svg+xml" href="./builder/favicon.svg" />
     <!--
       ═══════════════════════════════════════════════════════════════════════
       INTERNAL HOST PAGE SKELETON — copy this file into your PRIVATE repo.
@@ -84,11 +85,13 @@
 
       /* ════════════════════ TODO 2: WHERE ARE YOUR FILES? ════════════════════
          Paths (relative to this page) of the profile and instrument DB from
-         your private repo. Set to null to skip injection (users can still
-         drag-drop files inside the builder). A *.scenario.json can also be
-         preloaded to give first-time users a working starting point. */
-      const PROFILE_URL = './work.profile.json';
-      const INSTRUMENTS_URL = './instruments.json'; // .json or .csv
+         your private repo. The starter.* defaults ship next to this file and
+         load out of the box — replace them as your real config takes shape.
+         Set to null to skip injection (users can still drag-drop files inside
+         the builder). A *.scenario.json can also be preloaded to give
+         first-time users a working starting point. */
+      const PROFILE_URL = './starter.profile.json'; // e.g. './work.profile.json'
+      const INSTRUMENTS_URL = './starter.instruments.json'; // .json or .csv
       const STARTER_SCENARIO_URL = null; // e.g. './starter.scenario.json'
 
       /* ════════════════════ TODO 3: HOW DO MESSAGES GET SENT? ═══════════════
