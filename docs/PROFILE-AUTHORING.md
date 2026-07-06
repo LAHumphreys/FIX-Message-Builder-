@@ -898,6 +898,15 @@ JSON form:
 }
 ```
 
+- **`schemes` vs `attrs`**: schemes are _identifiers_ — what the instrument
+  is CALLED under some identification system (ISIN, RIC, exchange symbol,
+  house codes); attrs are _properties_ — what the instrument IS (type,
+  currency, strike…). Litmus tests: would a user search by it → scheme;
+  do destinations disagree about which to send → scheme; is it shared by
+  whole classes of instruments → attr. Two mechanical consequences:
+  the typeahead searches key + name + scheme values (attrs are not
+  searchable), and convention variant matching reads `attrs.securityType`
+  specifically — securityType MUST be an attr.
 - `schemes` keys are free-form; they just have to match what the conventions
   reference (`isin`, `exchangeSymbol`, `ric`, `custom:<anything>`).
 - Useful `attrs` (all string values): `securityType` (CS/FUT/OPT/MLEG…),
