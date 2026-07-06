@@ -4,6 +4,16 @@
   "name": "RENAME ME — Internal Starter",
   "version": "0.1.0",
   "fixVersion": "FIX.4.4",
+  "renderers": {
+    "json": {
+      "default": {
+        "keyStyle": "name",
+        "groupKey": "countName",
+        "emitCounts": false,
+        "typedValues": true
+      }
+    }
+  },
   "templates": { "D": "tmpl-new-order" },
   "generators": {
     "clOrdId": { "kind": "template", "template": "TEST-{date:yyyyMMdd}-{seq:4}" },

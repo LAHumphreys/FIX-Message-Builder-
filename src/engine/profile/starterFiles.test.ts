@@ -22,6 +22,9 @@ describe('internal-host starter files', () => {
     const { profile, issues } = parseProfile(profileText);
     expect(issues).toEqual([]);
     expect(profile?.systems[0]?.id).toBe('uat-gateway');
+    // The JSON tab reads the profile's mapping; the starter must declare one
+    // so first-run users see real JSON output, not the fallback hint.
+    expect(Object.keys(profile?.renderers?.json ?? {})).not.toHaveLength(0);
   });
 
   it('starter instrument DB loads with zero issues', () => {

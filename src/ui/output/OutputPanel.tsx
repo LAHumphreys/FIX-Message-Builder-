@@ -11,6 +11,7 @@ import { useAppDispatch, useAppState } from '../state/context.ts';
 import type { DerivedBuild } from '../state/derive.ts';
 import { AnnotatedView } from './AnnotatedView.tsx';
 import { downloadText } from '../files/download.ts';
+import { FALLBACK_JSON_MAPPING } from './jsonFallback.ts';
 
 const DELIMITER_LABELS: Record<TagValueDelimiter, string> = {
   soh: 'SOH',
@@ -33,12 +34,16 @@ function useJsonMapping(derived: DerivedBuild): {
   name: string | undefined;
   cfg: JsonMappingConfig | undefined;
   names: string[];
+  isFallback: boolean;
 } {
   const { jsonMapping } = useAppState();
   const mappings = derived.resolved?.profile.renderers?.json ?? {};
   const names = Object.keys(mappings);
   const name = jsonMapping && mappings[jsonMapping] ? jsonMapping : names[0];
-  return { name, cfg: name ? mappings[name] : undefined, names };
+  if (name) return { name, cfg: mappings[name], names, isFallback: false };
+  // No mapping declared: still render, with the same generic default the
+  // transport send uses.
+  return { name: undefined, cfg: FALLBACK_JSON_MAPPING, names, isFallback: true };
 }
 
 function RawView({ derived }: { derived: DerivedBuild }) {
@@ -56,13 +61,19 @@ function RawView({ derived }: { derived: DerivedBuild }) {
 }
 
 function JsonView({ derived }: { derived: DerivedBuild }) {
-  const { cfg } = useJsonMapping(derived);
+  const { cfg, isFallback } = useJsonMapping(derived);
   if (!derived.resolved || !cfg) {
-    return <p className="empty-note">The loaded profile declares no JSON mapping.</p>;
+    return <p className="empty-note">Load a profile to render JSON.</p>;
   }
   const text = renderJsonText(derived.messages, derived.resolved.dictionary, cfg);
   return (
     <div className="panel-body">
+      {isFallback && (
+        <p className="hint" style={{ margin: '0 0 0.5rem' }}>
+          Rendered with the built-in default mapping — the profile declares no{' '}
+          <code>renderers.json</code>. Add one to match your in-house format (authoring guide §11).
+        </p>
+      )}
       <pre className="raw-wire" style={{ margin: 0 }}>
         {text}
       </pre>

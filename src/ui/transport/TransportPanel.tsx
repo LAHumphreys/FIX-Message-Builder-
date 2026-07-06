@@ -1,15 +1,9 @@
-import { renderJsonMessage, renderTagValue, type JsonMappingConfig } from '../../engine/index.ts';
+import { renderJsonMessage, renderTagValue } from '../../engine/index.ts';
 import { useAppDispatch, useAppState } from '../state/context.ts';
 import type { DerivedBuild } from '../state/derive.ts';
+import { FALLBACK_JSON_MAPPING } from '../output/jsonFallback.ts';
 import { isEmbedded } from './embedded.ts';
 import { PROTOCOL_VERSION, type SendMessage } from './protocol.ts';
-
-const FALLBACK_MAPPING: JsonMappingConfig = {
-  keyStyle: 'name',
-  groupKey: 'countName',
-  emitCounts: false,
-  typedValues: true,
-};
 
 let requestCounter = 0;
 
@@ -34,7 +28,7 @@ export function TransportPanel({ derived }: { derived: DerivedBuild }) {
     const cfg =
       (jsonMapping ? mappings[jsonMapping] : undefined) ??
       Object.values(mappings)[0] ??
-      FALLBACK_MAPPING;
+      FALLBACK_JSON_MAPPING;
 
     requestCounter += 1;
     const requestId = `req-${Date.now()}-${requestCounter}`;
