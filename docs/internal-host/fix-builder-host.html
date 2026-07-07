@@ -80,8 +80,10 @@
       /* ════════════════════ TODO 1: WHERE IS THE BUILDER? ════════════════════
          Point this at your internally hosted copy of the app (recommended:
          pin a copy of the public site's files on your intranet), or at the
-         public Pages URL if your network policy allows it. */
-      const BUILDER_URL = './builder/'; // e.g. 'https://intranet.example/fix-builder/'
+         public Pages URL if your network policy allows it. The explicit
+         index.html keeps this working on dev servers that don't resolve
+         directory URLs (e.g. WebStorm's built-in preview server). */
+      const BUILDER_URL = './builder/index.html'; // e.g. 'https://intranet.example/fix-builder/'
 
       /* ════════════════════ TODO 2: WHERE ARE YOUR FILES? ════════════════════
          Paths (relative to this page) of the profile and instrument DB from
