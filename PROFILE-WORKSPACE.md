@@ -18,17 +18,20 @@ node fixb.mjs build profile-src --out=dist-config   # assemble + validate + BUIL
 node fixb.mjs build profile-src --out=dist-config --check   # CI: fail if outputs are stale
 node fixb.mjs watch profile-src --out=dist-config   # rebuild on change (IDE terminal)
 node fixb.mjs explain profile-src links/east-uat.json       # what did this file compile into?
-node fixb.mjs explode work.profile.json instruments.json --out=profile-src   # migrate
+node fixb.mjs explode work.profile.json instruments.json --out=profile-src --idea  # migrate
 ```
 
-**IDE experience (WebStorm / IntelliJ).** `init` copies the entity schemas
-into the workspace (`schemas/`) and stamps every file with `$schema`, so
-completion, enum restriction and required-property checks work offline with
-zero setup; `explode` stamps migrated files the same way. `init --idea`
-additionally writes `.idea/watcherTasks.xml` (a File Watcher running
-`fixb build` on save — BUILD-REPORT.md refreshes as you type) and
-`.idea/jsonSchemas.xml` (pattern-based schema mappings). Prefer a terminal?
-`fixb watch` does the same rebuild-on-save.
+**IDE experience (WebStorm / IntelliJ).** `init` and `explode` produce a
+**self-contained** workspace: the entity schemas are copied in (`schemas/`),
+every file is stamped with `$schema`, and `fixb.mjs` itself is copied into
+the folder — so completion, enum restriction and required-property checks
+work offline with zero setup, and the workspace builds anywhere (commit it
+to a private repo and the tool version travels with the config). `--idea`
+(both commands) additionally writes `.idea/watcherTasks.xml` (a File
+Watcher running `node fixb.mjs build` on save — BUILD-REPORT.md refreshes
+as you type) and `.idea/jsonSchemas.xml` (pattern-based schema mappings):
+open the workspace folder as the WebStorm project and it all just works.
+Prefer a terminal? `fixb watch` does the same rebuild-on-save.
 
 **Live preview in the builder.** Attaching a fixb source workspace in the
 app (Workspace folder panel; the folder is recognized by its
@@ -305,8 +308,10 @@ npm.
 fixb build   [src] [--out dir]     # assemble + validate + report (the default)
 fixb explain [src] <entity>        # print the compiled profile JSON for one entity,
                                    #   annotated with which source line produced what
-fixb explode [src] <profile.json>  # migrate: decompile an existing profile into a workspace
-fixb init    [dir]                 # scaffold a new workspace with commented starter files
+fixb explode <profile.json> [instruments] [--idea]  # migrate: decompile a profile into a workspace
+fixb init    [dir] [--idea]        # scaffold a new workspace with commented starter files
+                                   #   (both copy schemas/ + fixb.mjs in: self-contained;
+                                   #    --idea adds the IntelliJ File Watcher + mappings)
 ```
 
 ### 5.1 Outputs

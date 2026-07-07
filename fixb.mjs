@@ -34378,6 +34378,7 @@ var require_fix50sp2 = __commonJS({
 
 // src/workspace-compiler/cli.ts
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -37471,12 +37472,18 @@ var flow_schema_default = {
 };
 
 // src/workspace-compiler/init.ts
-function scaffold() {
+function schemaFiles() {
   const j = (v) => JSON.stringify(v, null, 2) + "\n";
   return /* @__PURE__ */ new Map([
     ["schemas/workspace.schema.json", j(workspace_schema_default)],
     ["schemas/link.schema.json", j(link_schema_default)],
-    ["schemas/flow.schema.json", j(flow_schema_default)],
+    ["schemas/flow.schema.json", j(flow_schema_default)]
+  ]);
+}
+function scaffold() {
+  const j = (v) => JSON.stringify(v, null, 2) + "\n";
+  return new Map([
+    ...schemaFiles(),
     [
       "workspace.json",
       j({
@@ -37771,23 +37778,15 @@ function explain(src, entity) {
   }
   return 0;
 }
-function explodeCmd(profilePath, instrumentsPath, outDir) {
-  const profileText = readFileSync(profilePath, "utf8");
-  const instrumentsText = instrumentsPath ? readFileSync(instrumentsPath, "utf8") : void 0;
-  const { files, notes } = explodeProfile(profileText, instrumentsText);
-  printIssues(notes);
-  for (const [path, content] of files) {
-    const full = join(outDir, path);
-    mkdirSync(join(full, ".."), { recursive: true });
-    writeFileSync(full, content);
-    console.log(`wrote ${full}`);
-  }
-  console.log(`
-exploded into ${outDir}/ \u2014 run 'fixb build ${outDir}' to verify it compiles.`);
-  return 0;
+function copySelfInto(dir) {
+  const self = process.argv[1];
+  if (!self || !self.endsWith("fixb.mjs")) return;
+  const dest = join(dir, "fixb.mjs");
+  if (existsSync(dest)) return;
+  copyFileSync(self, dest);
+  console.log(`wrote ${dest} (the build tool travels with the workspace)`);
 }
-function initCmd(dir, idea) {
-  const files = new Map([...scaffold(), ...idea ? ideaFiles() : []]);
+function writeNew(dir, files) {
   for (const [path, content] of files) {
     const full = join(dir, path);
     if (existsSync(full)) {
@@ -37798,9 +37797,30 @@ function initCmd(dir, idea) {
     writeFileSync(full, content);
     console.log(`wrote ${full}`);
   }
+}
+function explodeCmd(profilePath, instrumentsPath, outDir, idea) {
+  const profileText = readFileSync(profilePath, "utf8");
+  const instrumentsText = instrumentsPath ? readFileSync(instrumentsPath, "utf8") : void 0;
+  const { files, notes } = explodeProfile(profileText, instrumentsText);
+  printIssues(notes);
+  for (const [path, content] of files) {
+    const full = join(outDir, path);
+    mkdirSync(join(full, ".."), { recursive: true });
+    writeFileSync(full, content);
+    console.log(`wrote ${full}`);
+  }
+  writeNew(outDir, new Map([...schemaFiles(), ...idea ? ideaFiles() : []]));
+  copySelfInto(outDir);
+  console.log(`
+exploded into ${outDir}/ \u2014 run 'fixb build ${outDir}' to verify it compiles.`);
+  return 0;
+}
+function initCmd(dir, idea) {
+  writeNew(dir, new Map([...scaffold(), ...idea ? ideaFiles() : []]));
+  copySelfInto(dir);
   console.log(
     `
-workspace scaffolded \u2014 edit the files, then 'fixb build ${dir}'.` + (idea ? " IntelliJ users: reopen the project to pick up the File Watcher + schema mappings." : " (tip: 'fixb init --idea' also writes IntelliJ File Watcher + schema mappings)")
+workspace scaffolded \u2014 edit the files, then 'fixb build ${dir}'.` + (idea ? " IntelliJ users: open this folder as the project to pick up the File Watcher + schema mappings." : " (tip: 'fixb init --idea' also writes IntelliJ File Watcher + schema mappings)")
   );
   return 0;
 }
@@ -37841,17 +37861,17 @@ async function main(argv) {
     }
     case "explode":
       if (!rest[0]) {
-        console.error("usage: fixb explode <profile.json> [instruments.json] [--out=dir]");
+        console.error("usage: fixb explode <profile.json> [instruments.json] [--out=dir] [--idea]");
         return 1;
       }
-      return explodeCmd(rest[0], rest[1], outFlag ?? "profile-src");
+      return explodeCmd(rest[0], rest[1], outFlag ?? "profile-src", flags.has("--idea"));
     case "init":
       return initCmd(rest[0] ?? "profile-src", flags.has("--idea"));
     case "watch":
       return watchCmd(rest[0] ?? ".", outFlag ?? rest[0] ?? ".");
     default:
       console.error(
-        "fixb \u2014 FIX Message Builder profile workspace tool\n\nusage:\n  fixb build   [src] [--out=dir] [--check]   assemble + validate + report (+ goldens)\n  fixb explain [src] <entity-file>           show what a source file compiles into\n  fixb explode <profile.json> [instruments.json] [--out=dir]\n                                             decompile an existing profile into a workspace\n  fixb init    [dir] [--idea]                scaffold a starter workspace (+ IntelliJ files)\n  fixb watch   [src] [--out=dir]             rebuild on change (for the IDE terminal)\n\ndocs: docs/PROFILE-WORKSPACE.md"
+        "fixb \u2014 FIX Message Builder profile workspace tool\n\nusage:\n  fixb build   [src] [--out=dir] [--check]   assemble + validate + report (+ goldens)\n  fixb explain [src] <entity-file>           show what a source file compiles into\n  fixb explode <profile.json> [instruments.json] [--out=dir] [--idea]\n                                             decompile an existing profile into a workspace\n  fixb init    [dir] [--idea]                scaffold a starter workspace (+ IntelliJ files)\n  fixb watch   [src] [--out=dir]             rebuild on change (for the IDE terminal)\n\ndocs: docs/PROFILE-WORKSPACE.md"
       );
       return command ? 1 : 0;
   }
