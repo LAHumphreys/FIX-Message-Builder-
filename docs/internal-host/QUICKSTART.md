@@ -41,6 +41,17 @@ The app is a static bundle; no server-side anything.
   `docs/internal-host/fix-builder-host.html` to `…/fix-builder/index.html`
   and `docs/internal-host/starter.*.json` alongside it.
 
+**Local preview — no web server needed.** The `internal-dist` checkout runs
+as-is from your laptop: open the folder in WebStorm/IntelliJ and click the
+browser icon on `index.html` (the IDE's built-in server at
+`localhost:63342` serves it), or run any one-liner static server
+(`python -m http.server`) in the folder. Everything below — config
+injection, sends, the fixb workflow, attaching a source folder for live
+preview — works identically on `localhost`; only `deliver()` may need the
+real intranet origin. Plain double-click (`file://`) is the one thing that
+does _not_ work: browsers block the page from fetching the profile JSON, so
+the builder loads but starts empty (drag-drop still works).
+
 ## Step 2 — prove the plumbing before configuring anything (5 min)
 
 Open `…/fix-builder/` in a browser. **Unmodified**, the page must already:
