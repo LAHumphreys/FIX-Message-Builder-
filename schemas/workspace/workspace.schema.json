@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FIX Message Builder workspace manifest (workspace.json)",
+  "description": "Profile-wide facts. docs/PROFILE-WORKSPACE.md §4.1.",
+  "type": "object",
+  "required": ["name", "version", "fixVersion"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "fixVersion": {
+      "enum": ["FIX.4.2", "FIX.4.4", "FIX.5.0SP2"]
+    },
+    "generators": {
+      "type": "object",
+      "description": "Named runtime values (authoring guide §5)."
+    },
+    "newOrderTemplate": {
+      "type": "object",
+      "description": "Base fields on every 35=D. Sugar for templates.D. tag → value map. Values are literal strings or {\"generator\": \"<name>\"}. Sugar for a fragment of set/setGenerated ops — need remove/group ops? use raw fragments (docs/PROFILE-WORKSPACE.md rung 2/3).",
+      "propertyNames": {
+        "pattern": "^(//.*|[0-9]+)$"
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "required": ["generator"],
+            "properties": {
+              "generator": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "templates": {
+      "type": "object",
+      "description": "Raw template fragment refs per MsgType (rung 2; e.g. E:entry)."
+    },
+    "dictionaryOverlay": {
+      "type": "object",
+      "description": "Extra overlay beyond flow params (patching standard tags etc.)."
+    },
+    "validationPolicy": {
+      "type": "object",
+      "description": "Global rule severities (authoring guide §12)."
+    },
+    "flowOrder": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Flow dropdown order (unlisted flows follow alphabetically)."
+    },
+    "extraDimensions": {
+      "type": "array",
+      "description": "Escape hatch: extra dimensions appended verbatim (compiled profile format)."
+    },
+    "goldens": {
+      "type": "boolean",
+      "description": "Write golden/ wires per link×flow on build (pinned clock/seed) — config PRs diff as FIX."
+    }
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "$schema": "./schemas/profile.schema.json",
+  "schemaVersion": 1,
+  "name": "RENAME ME — Internal Starter",
+  "version": "0.1.0",
+  "fixVersion": "FIX.4.4",
+  "renderers": {
+    "json": {
+      "default": {
+        "keyStyle": "name",
+        "groupKey": "countName",
+        "emitCounts": false,
+        "typedValues": true
+      }
+    }
+  },
+  "templates": { "D": "tmpl-new-order" },
+  "generators": {
+    "clOrdId": { "kind": "template", "template": "TEST-{date:yyyyMMdd}-{seq:4}" },
+    "now": { "kind": "timestamp", "precision": "micros" }
+  },
+  "fragments": {
+    "tmpl-new-order": {
+      "label": "NewOrderSingle base",
+      "ops": [
+        { "op": "setGenerated", "tag": 11, "generator": "clOrdId" },
+        { "op": "set", "tag": 21, "value": "1" },
+        { "op": "setGenerated", "tag": 60, "generator": "now" }
+      ]
+    },
+    "session-uat": {
+      "label": "Session: RENAME-ME-UAT",
+      "ops": [
+        { "op": "set", "tag": 49, "value": "RENAME-SENDER-COMP-ID" },
+        { "op": "set", "tag": 56, "value": "RENAME-TARGET-COMP-ID" }
+      ]
+    },
+    "flow-limit": {
+      "label": "Flow: Limit",
+      "ops": [
+        { "op": "set", "tag": 40, "value": "2" },
+        {
+          "op": "slot",
+          "tag": 54,
+          "slot": {
+            "tag": 54,
+            "label": "Side",
+            "type": "enum",
+            "enumSource": { "kind": "dictionary" },
+            "required": true,
+            "default": "1"
+          }
+        },
+        {
+          "op": "slot",
+          "tag": 38,
+          "slot": { "tag": 38, "label": "Quantity", "type": "decimal", "required": true }
+        },
+        {
+          "op": "slot",
+          "tag": 44,
+          "slot": { "tag": 44, "label": "Limit price", "type": "decimal" }
+        }
+      ]
+    }
+  },
+  "systems": [
+    {
+      "id": "uat-gateway",
+      "label": "RENAME-ME-UAT",
+      "fragments": ["session-uat"],
+      "transportHints": { "route": "RENAME: anything deliver() in the host page needs" }
+    }
+  ],
+  "dimensions": [
+    {
+      "id": "flow",
+      "label": "Flow",
+      "kind": "options",
+      "required": true,
+      "options": [{ "id": "limit", "label": "Limit", "fragment": "flow-limit", "msgType": "D" }]
+    },
+    { "id": "instrument", "label": "Instrument", "kind": "instrument" }
+  ]
+}

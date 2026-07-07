@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FIX Message Builder workspace flow (flows/<id>.json)",
+  "description": "One flow — an algo is just a flow with params. File name = flow id. docs/PROFILE-WORKSPACE.md §4.3.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "msgType": {
+      "type": "string",
+      "description": "MsgType(35) this flow builds (default D)."
+    },
+    "modes": {
+      "type": "array",
+      "items": {
+        "enum": ["single", "batch", "list", "multileg"]
+      },
+      "description": "Supported build modes, first is the default."
+    },
+    "availability": {
+      "enum": ["everywhere", "opt-in"],
+      "description": "everywhere (default) = all links; opt-in = links list it in their 'algos'."
+    },
+    "fields": {
+      "type": "object",
+      "description": "Fixed tags this flow sets. tag → value map. Values are literal strings or {\"generator\": \"<name>\"}. Sugar for a fragment of set/setGenerated ops — need remove/group ops? use raw fragments (docs/PROFILE-WORKSPACE.md rung 2/3).",
+      "propertyNames": {
+        "pattern": "^(//.*|[0-9]+)$"
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "required": ["generator"],
+            "properties": {
+              "generator": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "params": {
+      "type": "object",
+      "description": "Custom tags: ONE entry declares the dictionary definition AND the form field/constant — they cannot desync.",
+      "propertyNames": {
+        "pattern": "^(//.*|[0-9]+)$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Dictionary field name (also the JSON output key with keyStyle 'name')."
+          },
+          "type": {
+            "type": "string",
+            "description": "FIX type: STRING/INT/QTY/PRICE/CHAR/BOOLEAN/… (default STRING)."
+          },
+          "enum": {
+            "type": "object",
+            "description": "value → label; also drives an enum slot's dropdown."
+          },
+          "slot": {
+            "type": "object",
+            "description": "User-editable form field. Mutually exclusive with 'value'.",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "type": {
+                "enum": ["string", "int", "decimal", "enum", "timestamp", "bool"]
+              },
+              "enumSource": {
+                "type": "object"
+              },
+              "default": {
+                "type": "string"
+              },
+              "generatorDefault": {
+                "type": "string"
+              },
+              "required": {
+                "type": "boolean"
+              }
+            }
+          },
+          "value": {
+            "type": "string",
+            "description": "Fixed constant. Mutually exclusive with 'slot'."
+          }
+        }
+      }
+    },
+    "standardSlots": {
+      "type": "object",
+      "description": "Form fields for standard FIX tags (54/38/44…): tag → slot spec.",
+      "propertyNames": {
+        "pattern": "^(//.*|[0-9]+)$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "description": "Form-field spec (authoring guide §7). 'tag' is added automatically.",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "enum": ["string", "int", "decimal", "enum", "timestamp", "bool"]
+          },
+          "enumSource": {
+            "type": "object"
+          },
+          "default": {
+            "type": "string"
+          },
+          "generatorDefault": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "ops": {
+      "type": "array",
+      "description": "Raw fragment ops appended after the generated ones (rung 2: remove/group/anything sugar can't say)."
+    }
+  }
+}

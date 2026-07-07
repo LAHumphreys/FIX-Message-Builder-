@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>FIX Message Builder — embedded host demo</title>
+    <!--
+      Demonstrates the embedded-mode host bridge with ZERO network activity:
+      this page injects a small fictional profile via postMessage and echoes
+      every send back as a fake acknowledgement. A real internal host page
+      (see docs/internal-host/ in the repo) does its Ajax here instead.
+    -->
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        font-family: system-ui, sans-serif;
+        background: #0e1216;
+        color: #d7dee6;
+      }
+      header {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        background: #191f26;
+        border-bottom: 1px solid #2c3540;
+        display: flex;
+        gap: 1rem;
+        align-items: baseline;
+      }
+      header .tag {
+        color: #3fbfae;
+        font-weight: 700;
+      }
+      iframe {
+        flex: 1;
+        border: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span
+        ><span class="tag">HOST DEMO</span> — this page embeds the builder, injects a profile, and
+        echoes sends back (no network anywhere).</span
+      >
+    </header>
+    <iframe id="builder" src="./" title="FIX Message Builder"></iframe>
+    <script>
+      'use strict';
+      const builder = document.getElementById('builder');
+
+      // A minimal fictional environment injected via the bridge — in a real
+      // internal host page this comes from your private repo instead.
+      const profile = {
+        schemaVersion: 1,
+        name: 'Host Injected Demo',
+        version: '1.0.0',
+        fixVersion: 'FIX.4.4',
+        templates: { D: 'tmpl-d' },
+        generators: {
+          clOrdId: { kind: 'template', template: 'HOST-{date:yyyyMMdd}-{seq:4}' },
+          now: { kind: 'timestamp', precision: 'micros' },
+        },
+        fragments: {
+          'tmpl-d': {
+            label: 'NewOrderSingle base',
+            ops: [
+              { op: 'setGenerated', tag: 11, generator: 'clOrdId' },
+              { op: 'set', tag: 21, value: '1' },
+              { op: 'setGenerated', tag: 60, generator: 'now' },
+            ],
+          },
+          session: {
+            label: 'Session: Host demo',
+            ops: [
+              { op: 'set', tag: 49, value: 'HOST-DEMO' },
+              { op: 'set', tag: 56, value: 'ECHO-GW' },
+            ],
+          },
+          limit: {
+            label: 'Flow: Limit',
+            ops: [
+              { op: 'set', tag: 40, value: '2' },
+              {
+                op: 'slot',
+                tag: 54,
+                slot: {
+                  tag: 54,
+                  label: 'Side',
+                  type: 'enum',
+                  enumSource: { kind: 'dictionary' },
+                  required: true,
+                  default: '1',
+                },
+              },
+              {
+                op: 'slot',
+                tag: 38,
+                slot: { tag: 38, label: 'Quantity', type: 'decimal', required: true },
+              },
+              { op: 'slot', tag: 44, slot: { tag: 44, label: 'Price', type: 'decimal' } },
+            ],
+          },
+        },
+        systems: [
+          {
+            id: 'echo',
+            label: 'ECHO (this page)',
+            fragments: ['session'],
+            transportHints: { channel: 'demo-echo', note: 'handled by host-demo.html' },
+          },
+        ],
+        dimensions: [
+          {
+            id: 'flow',
+            label: 'Flow',
+            kind: 'options',
+            required: true,
+            options: [{ id: 'limit', label: 'Limit', fragment: 'limit', msgType: 'D' }],
+          },
+        ],
+      };
+
+      const instruments = {
+        schemaVersion: 1,
+        instruments: [
+          {
+            key: 'ECHO-CORP',
+            name: 'Echo Corp',
+            schemes: { isin: 'ZZ0000009991', exchangeSymbol: 'ECHO' },
+            attrs: { securityType: 'CS', currency: 'ZZD' },
+          },
+        ],
+      };
+
+      window.addEventListener('message', (event) => {
+        if (event.source !== builder.contentWindow) return;
+        const data = event.data;
+        if (!data || typeof data.type !== 'string') return;
+
+        if (data.type === 'fixbuilder:ready') {
+          builder.contentWindow.postMessage(
+            { type: 'fixbuilder:config', profile, instruments },
+            event.origin
+          );
+          return;
+        }
+
+        if (data.type === 'fixbuilder:send') {
+          // A real host page performs its HTTP call here. The demo just
+          // acknowledges after a moment, echoing what it received.
+          const started = performance.now();
+          setTimeout(() => {
+            builder.contentWindow.postMessage(
+              {
+                type: 'fixbuilder:response',
+                requestId: data.requestId,
+                ok: true,
+                status: 200,
+                timingMs: Math.round(performance.now() - started),
+                body: {
+                  echoed: true,
+                  system: data.system,
+                  transportHints: data.transportHints,
+                  messageCount: data.messages.length,
+                  firstMessage: data.messages[0] ? data.messages[0].json : null,
+                },
+              },
+              event.origin
+            );
+          }, 350);
+        }
+      });
+    </script>
+  </body>
+</html>
