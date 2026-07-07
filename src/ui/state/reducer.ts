@@ -1,4 +1,4 @@
-import type { BatchRow } from '../../engine/index.ts';
+import { defaultSelections, type BatchRow } from '../../engine/index.ts';
 import { initialState, type Action, type AppState } from './types.ts';
 
 function updateRow(
@@ -44,6 +44,7 @@ export function reducer(state: AppState, action: Action): AppState {
         transportLog: state.transportLog,
         profile: action.profile,
         profileIssues: action.issues,
+        selections: defaultSelections(action.profile),
         systemId: action.profile.systems[0]?.id,
         jsonMapping: Object.keys(action.profile.renderers?.json ?? {})[0],
         buildNonce: state.buildNonce + 1,

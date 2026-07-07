@@ -1,9 +1,29 @@
-# Profile workspace — draft specification (for review)
+# Profile workspace — specification
 
-> **Status: DRAFT for review — no implementation yet.** This specifies a
-> source format and build tool that compile down to the existing
-> `work.profile.json` + `instruments.json`. The deployed app and the host
-> page are unchanged: they keep consuming the two compiled files.
+> **Status: IMPLEMENTED** (`src/workspace-compiler/`, CLI `fixb`). This
+> document is the reference for the source format and build tool, which
+> compile down to the existing `work.profile.json` + `instruments.json`.
+> The deployed app and the host page are unchanged: they keep consuming the
+> two compiled files.
+
+## 0. Using it
+
+```sh
+# dev (this repo)
+npm run build:fixb                 # bundle the CLI → dist-fixb/fixb.mjs
+
+# anywhere with Node (the bundle ships in internal-dist — no npm needed)
+node fixb.mjs init  profile-src    # scaffold a commented starter workspace
+node fixb.mjs build profile-src --out=dist-config   # assemble + validate + BUILD-REPORT.md
+node fixb.mjs build profile-src --out=dist-config --check   # CI: fail if outputs are stale
+node fixb.mjs explain profile-src links/east-uat.json       # what did this file compile into?
+node fixb.mjs explode work.profile.json instruments.json --out=profile-src   # migrate
+```
+
+Entity schemas for IDE completion live in `docs/schemas/workspace/`
+(`workspace`, `link`, `flow`; conventions/mappings/instruments reuse the
+existing profile-format schemas). Files may carry `"//"`-prefixed comment
+keys — stripped at build.
 
 ## 1. Why
 

@@ -63,6 +63,18 @@ export interface DimensionOption {
    * the last declared dimension wins and a finding reports the conflict.
    */
   readonly convention?: string;
+  /** Pre-selected when a profile loads (at most one per dimension). */
+  readonly default?: boolean;
+}
+
+/** Initial selections for a freshly loaded profile: per-dimension defaults. */
+export function defaultSelections(profile: Profile): Record<string, string> {
+  const selections: Record<string, string> = {};
+  for (const dimension of profile.dimensions) {
+    const def = dimension.options?.find((o) => o.default);
+    if (def) selections[dimension.id] = def.id;
+  }
+  return selections;
 }
 
 export interface DimensionDef {

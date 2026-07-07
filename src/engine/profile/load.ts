@@ -176,6 +176,9 @@ export function validateProfile(raw: unknown): ProfileLoadResult {
           warn(`${path}/options/${j}/convention`, `unknown convention '${o.convention}'`);
         }
       });
+      if ((options?.filter((o) => o.default).length ?? 0) > 1) {
+        warn(`${path}/options`, `dimension '${d.id}' marks more than one option as default`);
+      }
       dimensions.push({
         id: d.id,
         label: typeof d.label === 'string' ? d.label : d.id,

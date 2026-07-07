@@ -19,3 +19,4 @@ coverage/
 *.log
 npm-debug.log*
 dist-preview/
+dist-fixb/

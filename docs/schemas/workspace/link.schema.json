@@ -1,0 +1,254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FIX Message Builder workspace link (links/<id>.json)",
+  "description": "One FIX link (compiles to a system + its Client/Route dimension options). File name = link id. docs/PROFILE-WORKSPACE.md §4.2.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "session": {
+      "type": "object",
+      "description": "Session/routing tags (49/56, comp ids…). tag → value map. Values are literal strings or {\"generator\": \"<name>\"}. Sugar for a fragment of set/setGenerated ops — need remove/group ops? use raw fragments (docs/PROFILE-WORKSPACE.md rung 2/3).",
+      "propertyNames": {
+        "pattern": "^(//.*|[0-9]+)$"
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "required": ["generator"],
+            "properties": {
+              "generator": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "client": {
+      "type": "object",
+      "description": "Single client, no dropdown. Client entry: parties + account sugar (compiles to a Parties(453) group op and an Account(1) slot/set). Optional 'convention' switches instrument identity while this client is selected; optional raw 'ops' append.",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "default": {
+          "type": "boolean",
+          "description": "Pre-selected when the profile loads (one per dimension)."
+        },
+        "parties": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "PartyID(448)"
+              },
+              "source": {
+                "type": "string",
+                "description": "PartyIDSource(447), default D"
+              },
+              "role": {
+                "type": "string",
+                "description": "PartyRole(452), default 3 = Client ID"
+              }
+            }
+          }
+        },
+        "account": {
+          "type": "object",
+          "properties": {
+            "default": {
+              "type": "string"
+            },
+            "editable": {
+              "type": "boolean",
+              "description": "false → fixed set op instead of an editable slot (default true)"
+            }
+          }
+        },
+        "convention": {
+          "type": "string",
+          "description": "Identity-convention override while this client is selected (precedence: option > link)."
+        },
+        "ops": {
+          "type": "array",
+          "description": "Raw fragment ops appended after the sugar (rung 2)."
+        }
+      }
+    },
+    "clients": {
+      "type": "object",
+      "description": "Client selector: id → config. Same id on several links must be identical (shared option).",
+      "additionalProperties": {
+        "type": "object",
+        "description": "Client entry: parties + account sugar (compiles to a Parties(453) group op and an Account(1) slot/set). Optional 'convention' switches instrument identity while this client is selected; optional raw 'ops' append.",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "default": {
+            "type": "boolean",
+            "description": "Pre-selected when the profile loads (one per dimension)."
+          },
+          "parties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "PartyID(448)"
+                },
+                "source": {
+                  "type": "string",
+                  "description": "PartyIDSource(447), default D"
+                },
+                "role": {
+                  "type": "string",
+                  "description": "PartyRole(452), default 3 = Client ID"
+                }
+              }
+            }
+          },
+          "account": {
+            "type": "object",
+            "properties": {
+              "default": {
+                "type": "string"
+              },
+              "editable": {
+                "type": "boolean",
+                "description": "false → fixed set op instead of an editable slot (default true)"
+              }
+            }
+          },
+          "convention": {
+            "type": "string",
+            "description": "Identity-convention override while this client is selected (precedence: option > link)."
+          },
+          "ops": {
+            "type": "array",
+            "description": "Raw fragment ops appended after the sugar (rung 2)."
+          }
+        }
+      }
+    },
+    "routes": {
+      "type": "object",
+      "description": "Route selector: id → config (coherent tag combinations steering the router).",
+      "additionalProperties": {
+        "type": "object",
+        "description": "Route entry: a coherent tag combination (e.g. HandlInst+Text) selected as one choice.",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "default": {
+            "type": "boolean"
+          },
+          "fields": {
+            "type": "object",
+            "description": "tag → value map. Values are literal strings or {\"generator\": \"<name>\"}. Sugar for a fragment of set/setGenerated ops — need remove/group ops? use raw fragments (docs/PROFILE-WORKSPACE.md rung 2/3).",
+            "propertyNames": {
+              "pattern": "^(//.*|[0-9]+)$"
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "required": ["generator"],
+                  "properties": {
+                    "generator": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "convention": {
+            "type": "string"
+          },
+          "ops": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "enforced": {
+      "type": "object",
+      "description": "Compiles to the finalFragment — always wins, nothing can override. tag → value map. Values are literal strings or {\"generator\": \"<name>\"}. Sugar for a fragment of set/setGenerated ops — need remove/group ops? use raw fragments (docs/PROFILE-WORKSPACE.md rung 2/3).",
+      "propertyNames": {
+        "pattern": "^(//.*|[0-9]+)$"
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "required": ["generator"],
+            "properties": {
+              "generator": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "finalFragment": {
+      "type": "string",
+      "description": "Raw fragment ref alternative to 'enforced' (mutually exclusive)."
+    },
+    "convention": {
+      "type": "string",
+      "description": "Identity convention (conventions/<name>.json) for instruments on this link."
+    },
+    "algos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Opt-in flows enabled on this link (flow ids)."
+    },
+    "transportHints": {
+      "description": "Opaque per-link routing data handed to the internal host page with every send."
+    },
+    "extends": {
+      "type": ["string", "null"],
+      "description": "Inherit another link's keys (one level; a key you set replaces wholesale)."
+    },
+    "fragments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Raw fragment refs appended after the sugar-generated ones (rung 2)."
+    },
+    "dictionaryOverlay": {
+      "type": "object",
+      "description": "Per-link tag quirks (authoring guide §4)."
+    },
+    "validationPolicy": {
+      "type": "object",
+      "description": "Per-link rule muting (authoring guide §12)."
+    }
+  }
+}
