@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { parseScenario, scenarioCompatibility, serializeScenario } from '../../engine/index.ts';
 import { useAppDispatch, useAppState } from '../state/context.ts';
 import type { DerivedBuild } from '../state/derive.ts';
@@ -19,6 +20,30 @@ export function ScenarioBar({ derived }: { derived: DerivedBuild }) {
   const state = useAppState();
   const dispatch = useAppDispatch();
   const { profile, scenarioName } = state;
+  const saveRef = useRef<() => void>(() => undefined);
+  saveRef.current = () => {
+    if (!state.profile) return;
+    downloadText(
+      `${state.scenarioName || 'untitled'}.scenario.json`,
+      serializeScenario(currentScenario(state, derived))
+    );
+  };
+
+  // Ctrl/Cmd+S downloads the scenario in file mode (workspace mode handles
+  // its own save when attached).
+  const attached = state.workspace !== undefined;
+  useEffect(() => {
+    if (attached) return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveRef.current();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [attached]);
+
   if (!profile) return null;
 
   const loadScenarioText = (text: string) => {

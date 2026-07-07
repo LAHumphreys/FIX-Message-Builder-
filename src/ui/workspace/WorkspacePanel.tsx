@@ -40,6 +40,7 @@ export function WorkspacePanel({ derived }: { derived: DerivedBuild }) {
   const [conflict, setConflict] = useState<{ path: string; text: string } | undefined>();
   const stateRef = useRef(state);
   stateRef.current = state;
+  const saveScenarioRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
   const scan = useCallback(
     async (ws: FsaWorkspace, loadConfig: boolean) => {
@@ -93,6 +94,18 @@ export function WorkspacePanel({ derived }: { derived: DerivedBuild }) {
         setRestorable((handle as { name: string }).name);
       }
     });
+  }, []);
+
+  // Ctrl/Cmd+S saves in place while a workspace is attached (desktop-first).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's' && stateRef.current.workspace) {
+        e.preventDefault();
+        void saveScenarioRef.current?.();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   // Rescan on window focus (§3.9: no file-watch API exists).
@@ -200,6 +213,7 @@ export function WorkspacePanel({ derived }: { derived: DerivedBuild }) {
     }
     await writeScenario(path, text, expected);
   };
+  saveScenarioRef.current = saveScenario;
 
   if (!workspace) {
     return (

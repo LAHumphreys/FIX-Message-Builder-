@@ -74,7 +74,7 @@ Hand-editing one large profile JSON does not scale past a handful of links. The 
 
 ## Status
 
-Milestones 1–5 and 8 of [docs/BRIEF.md](docs/BRIEF.md) §9 are implemented (engine core, composition, builder UI, order groups, JSON renderer + scenarios, ship), plus the FIX 4.2/5.0 dictionaries, the embedded host bridge for internal integrations, and the profile-workspace toolchain above. In progress: Chromium File System Access workspace mode (milestone 6) and in-app instrument editing (milestone 7; target-system editing is deliberately delegated to the fixb workspace, where changes are git-reviewed and lint-checked). Deferred: per-message zip export, CSV paste into the grid.
+Milestones 1–5 and 8 of [docs/BRIEF.md](docs/BRIEF.md) §9 are implemented (engine core, composition, builder UI, order groups, JSON renderer + scenarios, ship), plus the FIX 4.2/5.0 dictionaries, the embedded host bridge for internal integrations, and the profile-workspace toolchain above. Milestone 6 (Chromium File System Access workspace mode: attach a repo checkout, scenario sidebar, in-place save with conflict detection) and milestone 7 (in-app instrument editing with convention-driven pre-fill and round-trip-faithful write-back) are also implemented — target-system editing is deliberately delegated to the fixb workspace, where changes are git-reviewed and lint-checked. Every milestone in the brief is now delivered. Deferred stretch goals: per-message zip export, CSV paste into the grid.
 
 ## License
 

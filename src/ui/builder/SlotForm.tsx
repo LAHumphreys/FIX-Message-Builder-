@@ -76,9 +76,12 @@ function SlotInput({ slot, derived }: { slot: ResolvedSlot; derived: DerivedBuil
 }
 
 export function SlotForm({ derived }: { derived: DerivedBuild }) {
+  const { selections } = useAppState();
   const slots = derived.slots;
   if (!derived.resolved) return null;
   const grouped = derived.mode === 'batch' || derived.mode === 'list';
+  const flowDim = derived.resolved.profile.dimensions.find((d) => d.kind === 'options');
+  const flowPicked = !flowDim || selections[flowDim.id] !== undefined;
 
   return (
     <section className="panel">
@@ -89,7 +92,9 @@ export function SlotForm({ derived }: { derived: DerivedBuild }) {
       <div className="panel-body">
         {slots.length === 0 ? (
           <p className="empty-note" style={{ padding: 0 }}>
-            The selected flow declares no parameter slots.
+            {flowPicked
+              ? 'The selected flow declares no parameter slots.'
+              : 'Pick a flow to see its parameters.'}
           </p>
         ) : (
           slots.map((slot) => <SlotInput key={slot.spec.tag} slot={slot} derived={derived} />)

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   removeInstrument,
   schemesUsed,
@@ -129,6 +129,14 @@ export function InstrumentEditor({ onClose }: { onClose: () => void }) {
   >();
   const [dirty, setDirty] = useState(0);
   const [persistNote, setPersistNote] = useState<string | undefined>();
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   const db: InstrumentDb = instrumentDb ?? {
     instruments: new Map(),
