@@ -24,7 +24,7 @@ function classify(text: string, filename: string): 'profile' | 'instruments' | '
   return 'profile';
 }
 
-export function LoadPanel() {
+export function LoadPanel({ onEditInstruments }: { onEditInstruments?: () => void }) {
   const { profile, profileIssues, instrumentDb, instrumentDbIssues } = useAppState();
   const dispatch = useAppDispatch();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -96,7 +96,18 @@ export function LoadPanel() {
         )}
         {instrumentDb && (
           <div className="profile-card">
-            <span className="name">Instrument DB</span>
+            <span className="name">
+              Instrument DB
+              {onEditInstruments && (
+                <button
+                  className="btn small"
+                  style={{ marginLeft: '0.5rem' }}
+                  onClick={onEditInstruments}
+                >
+                  ✎ Edit
+                </button>
+              )}
+            </span>
             <span className="meta">
               {instrumentDb.instruments.size} instruments · {instrumentDb.strategies.size}{' '}
               strategies

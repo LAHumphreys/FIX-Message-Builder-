@@ -139,3 +139,23 @@ export function resolveIdentity(
   }
   return { values, altIds, missing };
 }
+
+/** Schemes a convention can read, with whether any variant requires them —
+ *  drives the instrument-editor form pre-fill (§3.9 milestone 7). */
+export function schemesUsed(
+  convention: IdentityConvention
+): readonly { scheme: string; required: boolean }[] {
+  const schemes = new Map<string, boolean>();
+  const collect = (source: ValueSource, required: boolean): void => {
+    if ('scheme' in source) {
+      schemes.set(source.scheme, (schemes.get(source.scheme) ?? false) || required);
+    } else if ('firstOf' in source) {
+      for (const candidate of source.firstOf) collect(candidate, required);
+    }
+  };
+  for (const variant of convention.variants) {
+    for (const emit of variant.emit) collect(emit.from, emit.required ?? false);
+    for (const alt of variant.altIds ?? []) collect(alt.from, false);
+  }
+  return [...schemes.entries()].map(([scheme, required]) => ({ scheme, required }));
+}

@@ -737,3 +737,145 @@ select.input {
   border-left: 3px solid var(--border-strong);
   color: var(--text-dim);
 }
+
+/* --- Workspace mode (§3.9 Tier 1) ---------------------------------------- */
+
+.workspace-scenarios {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.workspace-scenario {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-scenario:hover {
+  background: var(--bg-hover);
+}
+
+.workspace-scenario.active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* --- Instrument editor (§3.9 milestone 7) -------------------------------- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 4rem 1rem 2rem;
+  z-index: 40;
+}
+
+.modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  width: min(820px, 100%);
+  max-height: calc(100vh - 6rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal > .panel-body {
+  overflow-y: auto;
+}
+
+.instrument-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.instrument-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  font-size: var(--fs-sm);
+  min-width: 0;
+}
+
+.instrument-row:last-child {
+  border-bottom: none;
+}
+
+.instrument-row .key {
+  color: var(--tag-num);
+  min-width: 7rem;
+}
+
+.instrument-row .hint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge-extra,
+.badge-dirty {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  padding: 0 0.3rem;
+  color: var(--text-dim);
+}
+
+.badge-dirty {
+  color: var(--sev-warning);
+  border-color: var(--sev-warning);
+}
+
+.instrument-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.pair-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pair-rows-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+.pair-row {
+  display: grid;
+  grid-template-columns: minmax(8rem, 40%) 1fr auto auto;
+  gap: 0.4rem;
+  align-items: center;
+}

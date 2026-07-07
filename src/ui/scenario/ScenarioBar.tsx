@@ -1,14 +1,8 @@
-import {
-  parseScenario,
-  scenarioCompatibility,
-  serializeScenario,
-  SCENARIO_SCHEMA_VERSION,
-  type RendererChoice,
-  type Scenario,
-} from '../../engine/index.ts';
+import { parseScenario, scenarioCompatibility, serializeScenario } from '../../engine/index.ts';
 import { useAppDispatch, useAppState } from '../state/context.ts';
 import type { DerivedBuild } from '../state/derive.ts';
 import { downloadText } from '../files/download.ts';
+import { currentScenario } from './currentScenario.ts';
 import demoScenarioSlicer from '../../demo/scenarios/slicer-alpha.scenario.json?raw';
 import demoScenarioBasket from '../../demo/scenarios/basket-5.scenario.json?raw';
 import demoScenarioList from '../../demo/scenarios/list-3.scenario.json?raw';
@@ -26,34 +20,6 @@ export function ScenarioBar({ derived }: { derived: DerivedBuild }) {
   const dispatch = useAppDispatch();
   const { profile, scenarioName } = state;
   if (!profile) return null;
-
-  const currentScenario = (): Scenario => {
-    const renderer: RendererChoice =
-      state.outputTab === 'raw'
-        ? {
-            kind: 'tagvalue',
-            delimiter: state.delimiter,
-            ...(state.omitLengthAndChecksum ? { omitLengthAndChecksum: true } : {}),
-          }
-        : state.outputTab === 'json' && state.jsonMapping
-          ? { kind: 'json', mapping: state.jsonMapping }
-          : { kind: 'annotated' };
-    return {
-      schemaVersion: SCENARIO_SCHEMA_VERSION,
-      name: scenarioName || 'untitled',
-      profile: { name: profile.name, version: profile.version },
-      fixVersion: state.fixVersion === 'profile' ? profile.fixVersion : state.fixVersion,
-      mode: derived.mode,
-      systemId: state.systemId ?? '',
-      selections: state.selections,
-      slotValues: state.slotValues,
-      ...(derived.mode === 'batch' || derived.mode === 'list' ? { rows: state.rows } : {}),
-      ...(derived.mode === 'multileg' && state.legOverrides.length > 0
-        ? { legOverrides: state.legOverrides }
-        : {}),
-      renderer,
-    };
-  };
 
   const loadScenarioText = (text: string) => {
     const { scenario, issues } = parseScenario(text);
@@ -86,7 +52,7 @@ export function ScenarioBar({ derived }: { derived: DerivedBuild }) {
           onClick={() =>
             downloadText(
               `${scenarioName || 'untitled'}.scenario.json`,
-              serializeScenario(currentScenario())
+              serializeScenario(currentScenario(state, derived))
             )
           }
         >

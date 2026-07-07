@@ -36,6 +36,7 @@ export * from './workspace/memory.ts';
 export * from './instrument/types.ts';
 export * from './instrument/csv.ts';
 export * from './instrument/db.ts';
+export * from './instrument/edit.ts';
 export * from './instrument/search.ts';
 export * from './instrument/convention.ts';
 export * from './instrument/placement.ts';

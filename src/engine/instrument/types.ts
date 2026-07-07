@@ -27,6 +27,9 @@ export interface InstrumentRecord {
   /** Identifiers keyed by scheme: isin, exchangeSymbol, ric, custom:<n>... */
   readonly schemes: Readonly<Record<string, string>>;
   readonly attrs: InstrumentAttrs;
+  /** Unknown top-level keys, preserved verbatim for round-trip fidelity
+   *  (§3.9: files are git-reviewed; serialisation must not eat data). */
+  readonly extra?: Readonly<Record<string, unknown>>;
 }
 
 export interface StrategyLeg {
@@ -35,6 +38,8 @@ export interface StrategyLeg {
   readonly ratioQty: string; // LegRatioQty(623)
   readonly side: string; // LegSide(624)
   readonly price?: string; // LegPrice(566)
+  /** Unknown keys, preserved verbatim. */
+  readonly extra?: Readonly<Record<string, unknown>>;
 }
 
 export interface StrategyRecord {
@@ -46,6 +51,8 @@ export interface StrategyRecord {
   readonly schemes?: Readonly<Record<string, string>>;
   readonly attrs?: InstrumentAttrs;
   readonly legs: readonly StrategyLeg[];
+  /** Unknown top-level keys, preserved verbatim (see InstrumentRecord). */
+  readonly extra?: Readonly<Record<string, unknown>>;
 }
 
 export interface InstrumentDb {
@@ -55,6 +62,8 @@ export interface InstrumentDb {
   readonly instrumentOrder: readonly string[];
   /** Column order of the source CSV, when loaded from CSV. */
   readonly csvColumns?: readonly string[];
+  /** Unknown top-level file keys ($schema, comments…), preserved verbatim. */
+  readonly extra?: Readonly<Record<string, unknown>>;
 }
 
 export interface InstrumentDbIssue {

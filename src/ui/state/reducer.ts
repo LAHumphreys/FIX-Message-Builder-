@@ -42,6 +42,7 @@ export function reducer(state: AppState, action: Action): AppState {
         dictionaryError: state.dictionaryError,
         hostOrigin: state.hostOrigin,
         transportLog: state.transportLog,
+        workspace: state.workspace,
         profile: action.profile,
         profileIssues: action.issues,
         selections: defaultSelections(action.profile),
@@ -180,5 +181,42 @@ export function reducer(state: AppState, action: Action): AppState {
     }
     case 'regenerate':
       return { ...state, buildNonce: state.buildNonce + 1 };
+    case 'workspace-attached':
+      return { ...state, workspace: action.workspace };
+    case 'workspace-detached':
+      return { ...state, workspace: undefined };
+    case 'workspace-scenarios':
+      return state.workspace
+        ? {
+            ...state,
+            workspace: {
+              ...state.workspace,
+              scenarios: action.scenarios,
+              ...(action.changedOnDisk !== undefined
+                ? { changedOnDisk: action.changedOnDisk }
+                : {}),
+            },
+          }
+        : state;
+    case 'workspace-scenario-origin': {
+      if (!state.workspace) return state;
+      const workspace = { ...state.workspace, changedOnDisk: false };
+      delete workspace.loadedScenarioPath;
+      delete workspace.loadedScenarioToken;
+      if (action.path !== undefined) workspace.loadedScenarioPath = action.path;
+      if (action.token !== undefined) workspace.loadedScenarioToken = action.token;
+      return { ...state, workspace };
+    }
+    case 'workspace-instruments-origin':
+      return state.workspace
+        ? {
+            ...state,
+            workspace: {
+              ...state.workspace,
+              instrumentsPath: action.path,
+              instrumentsToken: action.token,
+            },
+          }
+        : state;
   }
 }

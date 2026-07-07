@@ -15,6 +15,21 @@ import type {
 
 export type OutputTab = 'annotated' | 'raw' | 'json';
 
+/** Attached File System Access workspace (§3.9 Tier 1) — display state
+ *  only; the provider object lives outside the reducer. */
+export interface WorkspaceState {
+  readonly name: string;
+  readonly scenarios: readonly { readonly path: string; readonly modifiedToken: string }[];
+  /** Origin of the currently loaded scenario, for in-place save + dirty checks. */
+  readonly loadedScenarioPath?: string;
+  readonly loadedScenarioToken?: string;
+  /** The loaded scenario's file changed externally (focus rescan). */
+  readonly changedOnDisk?: boolean;
+  /** Instruments file backing the in-app editor, when the workspace has one. */
+  readonly instrumentsPath?: string;
+  readonly instrumentsToken?: string;
+}
+
 export interface TransportEntry {
   readonly id: string;
   readonly summary: string;
@@ -59,6 +74,7 @@ export interface AppState {
   readonly transportLog: readonly TransportEntry[];
   /** Bumped by "Regenerate": reseeds generators and refreshes timestamps. */
   readonly buildNonce: number;
+  readonly workspace: WorkspaceState | undefined;
 }
 
 export type Action =
@@ -117,7 +133,24 @@ export type Action =
       readonly scenario: Scenario;
       readonly findings: readonly Finding[];
     }
-  | { readonly type: 'regenerate' };
+  | { readonly type: 'regenerate' }
+  | { readonly type: 'workspace-attached'; readonly workspace: WorkspaceState }
+  | { readonly type: 'workspace-detached' }
+  | {
+      readonly type: 'workspace-scenarios';
+      readonly scenarios: WorkspaceState['scenarios'];
+      readonly changedOnDisk?: boolean;
+    }
+  | {
+      readonly type: 'workspace-scenario-origin';
+      readonly path: string | undefined;
+      readonly token: string | undefined;
+    }
+  | {
+      readonly type: 'workspace-instruments-origin';
+      readonly path: string;
+      readonly token: string;
+    };
 
 export const initialState: AppState = {
   profile: undefined,
@@ -142,4 +175,5 @@ export const initialState: AppState = {
   hostOrigin: undefined,
   transportLog: [],
   buildNonce: 1,
+  workspace: undefined,
 };

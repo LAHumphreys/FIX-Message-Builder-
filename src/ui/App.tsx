@@ -12,6 +12,8 @@ import { OutputPanel } from './output/OutputPanel.tsx';
 import { FindingsPanel } from './validation/FindingsPanel.tsx';
 import { HostBridge } from './transport/HostBridge.tsx';
 import { TransportPanel } from './transport/TransportPanel.tsx';
+import { WorkspacePanel } from './workspace/WorkspacePanel.tsx';
+import { InstrumentEditor } from './instruments/InstrumentEditor.tsx';
 
 type Theme = 'system' | 'light' | 'dark';
 
@@ -83,11 +85,14 @@ function DictionaryErrorBanner() {
 
 function Workbench() {
   const derived = useBuildResult();
+  const [editingInstruments, setEditingInstruments] = useState(false);
   return (
     <main className="app-main">
       <HostBridge />
+      {editingInstruments && <InstrumentEditor onClose={() => setEditingInstruments(false)} />}
       <div className="rail">
-        <LoadPanel />
+        <LoadPanel onEditInstruments={() => setEditingInstruments(true)} />
+        <WorkspacePanel derived={derived} />
         <ScenarioBar derived={derived} />
       </div>
       <div className="col col-center">

@@ -21,6 +21,17 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
+function extraKeys(
+  v: Record<string, unknown>,
+  known: readonly string[]
+): Record<string, unknown> | undefined {
+  const out: Record<string, unknown> = {};
+  for (const [k, value] of Object.entries(v)) {
+    if (!known.includes(k)) out[k] = value;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
 function stringMap(v: unknown): Record<string, string> {
   if (!isRecord(v)) return {};
   const out: Record<string, string> = {};
@@ -47,6 +58,8 @@ export function parseInstrumentDbJson(text: string): InstrumentDbLoadResult {
     };
   }
 
+  const dbExtra = extraKeys(raw, ['instruments', 'strategies']);
+
   const instruments = new Map<string, InstrumentRecord>();
   const instrumentOrder: string[] = [];
   raw.instruments.forEach((r, i) => {
@@ -60,11 +73,13 @@ export function parseInstrumentDbJson(text: string): InstrumentDbLoadResult {
     } else {
       instrumentOrder.push(r.key);
     }
+    const recordExtra = extraKeys(r, ['key', 'name', 'schemes', 'attrs']);
     instruments.set(r.key, {
       key: r.key,
       ...(typeof r.name === 'string' ? { name: r.name } : {}),
       schemes: stringMap(r.schemes),
       attrs: stringMap(r.attrs) as InstrumentAttrs,
+      ...(recordExtra ? { extra: recordExtra } : {}),
     });
   });
 
@@ -92,15 +107,25 @@ export function parseInstrumentDbJson(text: string): InstrumentDbLoadResult {
             message: `leg references unknown instrument '${leg.instrument}'`,
           });
         }
+        const legExtra = extraKeys(leg, ['instrument', 'ratioQty', 'side', 'price']);
         return [
           {
             instrument: leg.instrument,
             ratioQty: typeof leg.ratioQty === 'string' ? leg.ratioQty : '1',
             side: typeof leg.side === 'string' ? leg.side : '1',
             ...(typeof leg.price === 'string' ? { price: leg.price } : {}),
+            ...(legExtra ? { extra: legExtra } : {}),
           },
         ];
       });
+      const strategyExtra = extraKeys(s, [
+        'key',
+        'name',
+        'strategyType',
+        'schemes',
+        'attrs',
+        'legs',
+      ]);
       strategies.set(s.key, {
         key: s.key,
         ...(typeof s.name === 'string' ? { name: s.name } : {}),
@@ -108,11 +133,15 @@ export function parseInstrumentDbJson(text: string): InstrumentDbLoadResult {
         ...(isRecord(s.schemes) ? { schemes: stringMap(s.schemes) } : {}),
         ...(isRecord(s.attrs) ? { attrs: stringMap(s.attrs) as InstrumentAttrs } : {}),
         legs,
+        ...(strategyExtra ? { extra: strategyExtra } : {}),
       });
     });
   }
 
-  return { db: { instruments, strategies, instrumentOrder }, issues };
+  return {
+    db: { instruments, strategies, instrumentOrder, ...(dbExtra ? { extra: dbExtra } : {}) },
+    issues,
+  };
 }
 
 /** CSV: header row with `key`, `name`, `scheme:*`, `attr:*` columns. */
@@ -143,11 +172,13 @@ export function parseInstrumentDbCsv(text: string): InstrumentDbLoadResult {
     }
     const schemes: Record<string, string> = {};
     const attrs: Record<string, string> = {};
+    const extra: Record<string, unknown> = {};
     header.forEach((col, c) => {
       const value = row[c] ?? '';
       if (value === '') return;
       if (col.startsWith('scheme:')) schemes[col.slice(7)] = value;
       else if (col.startsWith('attr:')) attrs[col.slice(5)] = value;
+      else if (col !== 'key' && col !== 'name') extra[col] = value;
     });
     if (instruments.has(key)) {
       issues.push({ severity: 'warning', path, message: `duplicate key '${key}' (last wins)` });
@@ -160,6 +191,7 @@ export function parseInstrumentDbCsv(text: string): InstrumentDbLoadResult {
       ...(name ? { name } : {}),
       schemes,
       attrs: attrs as InstrumentAttrs,
+      ...(Object.keys(extra).length > 0 ? { extra } : {}),
     });
   });
 
