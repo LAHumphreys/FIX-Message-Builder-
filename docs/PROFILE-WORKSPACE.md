@@ -20,6 +20,10 @@ node fixb.mjs explain profile-src links/east-uat.json       # what did this file
 node fixb.mjs explode work.profile.json instruments.json --out=profile-src   # migrate
 ```
 
+**Node compatibility**: the bundled CLI targets **Node ≥ 14.18** (esbuild
+`--target=node14.18`, no npm, no dependencies) and is exercised on real
+Node 14.18/16.20 binaries; outputs are byte-identical across Node versions.
+
 Entity schemas for IDE completion live in `docs/schemas/workspace/`
 (`workspace`, `link`, `flow`; conventions/mappings/instruments reuse the
 existing profile-format schemas). Files may carry `"//"`-prefixed comment

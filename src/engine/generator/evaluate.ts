@@ -23,12 +23,12 @@ export function formatFixTimestamp(date: Date, precision: TimestampPrecision): s
 
 function formatDateToken(date: Date, format: string): string {
   return format
-    .replaceAll('yyyy', pad(date.getUTCFullYear(), 4))
-    .replaceAll('MM', pad(date.getUTCMonth() + 1, 2))
-    .replaceAll('dd', pad(date.getUTCDate(), 2))
-    .replaceAll('HH', pad(date.getUTCHours(), 2))
-    .replaceAll('mm', pad(date.getUTCMinutes(), 2))
-    .replaceAll('ss', pad(date.getUTCSeconds(), 2));
+    .replace(/yyyy/g, pad(date.getUTCFullYear(), 4))
+    .replace(/MM/g, pad(date.getUTCMonth() + 1, 2))
+    .replace(/dd/g, pad(date.getUTCDate(), 2))
+    .replace(/HH/g, pad(date.getUTCHours(), 2))
+    .replace(/mm/g, pad(date.getUTCMinutes(), 2))
+    .replace(/ss/g, pad(date.getUTCSeconds(), 2));
 }
 
 function randomHex(random: () => number, length: number): string {

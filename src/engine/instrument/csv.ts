@@ -55,7 +55,7 @@ export function parseCsv(text: string): string[][] {
 }
 
 export function serializeCsvCell(value: string): string {
-  return /[",\n\r]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
+  return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 }
 
 export function serializeCsv(rows: readonly (readonly string[])[]): string {

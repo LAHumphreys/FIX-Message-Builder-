@@ -27,7 +27,7 @@ function readWorkspace(dir: string): Map<string, string> {
       const full = join(d, entry);
       if (statSync(full).isDirectory()) walk(full);
       else if (/\.(json|csv)$/i.test(entry)) {
-        files.set(relative(dir, full).replaceAll('\\', '/'), readFileSync(full, 'utf8'));
+        files.set(relative(dir, full).replace(/\\/g, '/'), readFileSync(full, 'utf8'));
       }
     }
   };
