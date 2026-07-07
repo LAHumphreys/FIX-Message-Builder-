@@ -96,40 +96,93 @@ description._ Need `remove`/`group`/per-msgType templates? Rung 2:
 `"templates": { "D": "some-raw-fragment", "E:entry": … }` referencing
 `fragments/`.
 
-### 4.2 `links/<id>.json` — a FIX link (compiles to a system)
+### 4.2 `links/<id>.json` — a FIX link (compiles to a system + its dimensions)
 
-The file answers, top to bottom, the questions a new link raises:
+A link is not a flat fact-sheet: it carries its own selector space. Two
+sub-dimensions recur on real links and are first-class here:
+
+- **Clients** — different developers enter as different clients
+  (PartyRole 3), and the chosen client can imply a different instrument
+  identifier style (a different convention).
+- **Routes** — coherent tag _combinations_ (typically HandlInst(21) +
+  Text(58)) that steer the router down different paths into the box.
 
 ```json
 {
   "label": "EAST-UAT",
   "session": { "49": "DESK-CLI", "56": "EAST-GW" },
-  "client": {
-    "parties": [{ "id": "LUKEH", "source": "D", "role": "3" }],
-    "account": { "default": "LukeAcc", "editable": true }
+  "convention": "isin-decomposed",
+  "clients": {
+    "luke": {
+      "label": "Luke",
+      "default": true,
+      "parties": [{ "id": "LUKEH", "source": "D", "role": "3" }],
+      "account": { "default": "LukeAcc", "editable": true }
+    },
+    "desk": {
+      "label": "Desk account",
+      "parties": [{ "id": "DESK-01", "source": "D", "role": "3" }],
+      "convention": "house-composed"
+    }
+  },
+  "routes": {
+    "dma": { "label": "DMA", "default": true, "fields": { "21": "1" } },
+    "care": { "label": "Care desk", "fields": { "21": "3", "58": "CARE" } }
   },
   "enforced": { "20101": "EAST-UAT-GW" },
-  "convention": "isin-decomposed",
   "algos": ["slicer"],
   "transportHints": { "route": "east-uat" },
   "extends": null
 }
 ```
 
-| Key              | Sugar for                                                           | Notes                                             |
-| ---------------- | ------------------------------------------------------------------- | ------------------------------------------------- |
-| `session`        | a system fragment of `set` ops                                      | tag→value map; values may be `{ "generator": … }` |
-| `client.parties` | a Parties(453) `group` op, `mode: append`                           | one entry per element; `role` 3 = client          |
-| `client.account` | Account(1) slot with default, or a `set` when `"editable": false`   |                                                   |
-| `enforced`       | the system's `finalFragment`                                        | tag→value map — always wins                       |
-| `algos`          | capability tags + this link appearing in those flows' `availableOn` | the algo×link matrix, link-side view              |
-| `extends`        | system `extends`                                                    | same one-level semantics as today                 |
+| Key          | Sugar for                                                                      | Notes                                                                                                                  |
+| ------------ | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `session`    | a system fragment of `set` ops                                                 | tag→value map; values may be `{ "generator": … }`                                                                      |
+| `clients`    | options in a global **Client** dimension, gated to this link via `availableOn` | per-option: `parties`/`account` sugar as before, plus an optional `convention` that overrides the link's when selected |
+| `routes`     | options in a global **Route** dimension, gated to this link                    | each option's `fields` is a tag→value map — a _coherent combination_, selected as one choice                           |
+| `convention` | system `convention`                                                            | the link default; a client option may override                                                                         |
+| `enforced`   | the system's `finalFragment`                                                   | tag→value map — always wins                                                                                            |
+| `algos`      | capability tags + this link appearing in those flows' `availableOn`            | the algo×link matrix, link-side view                                                                                   |
+| `extends`    | system `extends`                                                               | same one-level semantics as today                                                                                      |
+
+Behaviour details:
+
+- **Collapsed common case:** a link with exactly one client may write it as
+  singular `"client": { … }` — compiled as a plain system fragment, no
+  dropdown appears. Same for zero `routes` (no Route selector). The simple
+  link file stays as short as the flat original.
+- **`default: true`** marks the pre-selected option (exactly one per
+  dimension per link; build-enforced). A `routes` dimension with no default
+  is optional — "no route override" is a valid choice.
+- The UI renders Client/Route selectors under the target system; switching
+  links keeps selections and flags now-unavailable options as findings,
+  exactly like the existing retargeting semantics (§3.8) — never silent.
+- Routes vs. an enum _slot_ on Text(58): a slot edits one tag; a route
+  option sets a **combination** coherently (21+58 must agree). Use a route
+  when the values travel together; use a slot when one tag varies freely.
+- The BUILD-REPORT gains client×link and route×link tables alongside the
+  algo×link matrix.
 
 **Rung 2 (in-file raw):** `"fragments": ["weird-session-x"]` appends raw
-fragments from `fragments/` after the sugar-generated ones;
-`"dictionaryOverlay"` and `"validationPolicy"` accepted verbatim (per-system
-quirks, §4/§12 format). Sugar and raw compose — you never rewrite the easy
-parts to express the hard ones.
+fragments from `fragments/` after the sugar-generated ones; a client/route
+option accepts `"ops": [ … ]` (raw §6 ops) alongside or instead of its
+sugar; `"dictionaryOverlay"` and `"validationPolicy"` accepted verbatim
+(per-system quirks, §4/§12 format). Sugar and raw compose — you never
+rewrite the easy parts to express the hard ones.
+
+#### Engine prerequisite: option-level convention override
+
+"The chosen client implies the identifier style" needs one small engine
+addition: today `convention` is a system property only. The change — a
+dimension option may carry `"convention": "<name>"`, and when selected it
+overrides the system's convention for instrument placement (documented
+precedence: option > system; two selected options both overriding is a
+build-time error in the workspace and a load warning in the raw profile).
+Touches the profile types/loader, selection resolution, and the derive
+pipeline; surfaced in the annotated view's provenance ("convention via
+Client: Desk account"). Ships as part of milestone W1, with the guide and
+schemas updated in the same change as usual.
 
 ### 4.3 `flows/<id>.json` — a flow ("algo" = flow with params)
 
@@ -288,8 +341,10 @@ every link×flow — verified by the golden mechanism, not by string equality).
 
 ## 9. Open questions for review
 
-1. **Naming**: `links/` vs `systems/` (spec says "link" per your usage —
-   the compiled artifact keeps calling them systems).
+1. **Naming — RESOLVED: `links/`.** A "system" is the flat compiled
+   artifact; the workspace entity is richer — a link with its own selector
+   space (clients, routes) hanging under it. The compiled profile keeps the
+   `systems` terminology unchanged.
 2. Should `explode` become the _only_ supported migration, or do we also
    keep the single-file profile as a first-class authoring path forever?
    (Spec assumes: single-file remains supported and documented; workspace is
@@ -304,6 +359,7 @@ every link×flow — verified by the golden mechanism, not by string equality).
 
 | #   | Deliverable                                                                | Acceptance                                                                                              |
 | --- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| W0  | Engine: option-level `convention` override (+ guide/schema updates)        | Client option switches identity tags in the annotated view with provenance; precedence tested           |
 | W1  | Entity schemas + `build` (assemble, validate via engine, canonical output) | Demo profile re-expressed as a workspace builds byte-identical output; CI-tested like the authoring doc |
 | W2  | BUILD-REPORT + semantic lint + `--check`                                   | Report matrix matches demo; seeded mistakes produce file+path errors                                    |
 | W3  | `explain`, `init`, precompiled CLI into `internal-dist`                    | Office flow: clone → `node fixb.cjs build` with no npm                                                  |
