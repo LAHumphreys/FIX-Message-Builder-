@@ -68,9 +68,13 @@ node scripts/convert-quickfix.mjs FIX44.xml --out src/engine/dictionary/data/fix
 node scripts/convert-quickfix.mjs FIX50SP2.xml --fixt FIXT11.xml --out src/engine/dictionary/data/fix50sp2.json
 ```
 
+## Configuration at scale: the profile workspace
+
+Hand-editing one large profile JSON does not scale past a handful of links. The **profile workspace** ([docs/PROFILE-WORKSPACE.md](docs/PROFILE-WORKSPACE.md)) is a files-per-entity source format — one file per link, per flow/algo, per convention — compiled by the dependency-free `fixb` CLI (Node ≥ 14.18, no npm) into the profile/instrument JSON the app consumes. A single `params` entry declares a custom tag's dictionary definition _and_ its form field; enabling an algo on a link is one string in one array. The build validates through the real engine loader, emits a human `BUILD-REPORT.md` (algo×link matrices, semantic lint), optional golden messages so config PRs diff as FIX, and `fixb explode` migrates an existing profile losslessly.
+
 ## Status
 
-Milestones 1–5 of [docs/BRIEF.md](docs/BRIEF.md) §9 are implemented (engine core, composition, builder UI, order groups, JSON renderer + scenarios), plus the FIX 4.2/5.0 dictionaries and the Tier-1 workspace seam (optimistic-concurrency contract + in-memory reference). Deferred: the Chromium File System Access integration (milestone 6 UI), in-app instrument/system CRUD (milestone 7), per-message zip export.
+Milestones 1–5 and 8 of [docs/BRIEF.md](docs/BRIEF.md) §9 are implemented (engine core, composition, builder UI, order groups, JSON renderer + scenarios, ship), plus the FIX 4.2/5.0 dictionaries, the embedded host bridge for internal integrations, and the profile-workspace toolchain above. In progress: Chromium File System Access workspace mode (milestone 6) and in-app instrument editing (milestone 7; target-system editing is deliberately delegated to the fixb workspace, where changes are git-reviewed and lint-checked). Deferred: per-message zip export, CSV paste into the grid.
 
 ## License
 

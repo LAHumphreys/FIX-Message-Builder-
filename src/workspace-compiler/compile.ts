@@ -237,7 +237,6 @@ const LINK_KEYS = new Set([
   'finalFragment',
   'convention',
   'algos',
-  'flows',
   'transportHints',
   'extends',
   'fragments',

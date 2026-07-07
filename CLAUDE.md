@@ -10,6 +10,7 @@ acceptance criteria in detail.
 - `npm run verify` — everything CI runs: typecheck, lint, format check, tests, build, privacy check
 - `npm run test` / `npm run test:watch` / `npm run test:coverage`
 - `npm run dev` — Vite dev server
+- `npm run build:fixb` — bundle the profile-workspace CLI (`dist-fixb/fixb.mjs`, Node ≥14.18, no deps)
 
 ## Branch & deployment workflow
 
@@ -33,6 +34,9 @@ Full detail in **docs/WORKFLOW.md**. The short version:
   no browser globals, no React, no imports from `src/ui/`, zero runtime
   dependencies. `src/ui/` is thin React over the engine's public surface
   (`src/engine/index.ts`) and holds no business logic.
+  `src/workspace-compiler/` (the fixb config toolchain, docs/PROFILE-WORKSPACE.md)
+  is pure TS over engine internals; only `cli.ts` touches the filesystem, and
+  nothing in `src/ui/` or `src/engine/` may import from it.
 - **The tool never refuses to render.** Validation informs (error/warning/info
   badges); it must never block output — malformed messages are legitimate test
   inputs.
