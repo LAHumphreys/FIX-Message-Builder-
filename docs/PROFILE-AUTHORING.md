@@ -626,9 +626,19 @@ The target system is always the implicit first selector. Declare the rest:
 - `modes` — which build modes the option supports, first is the default:
   `"single"`, `"batch"` (N independent messages), `"list"` (one 35=E),
   `"multileg"` (one 35=AB from a strategy record).
-- You may add more dimensions (e.g. a "route" or "account" dimension with
+- `convention` — identity-convention override (§10): while this option is
+  selected, instruments render through this convention instead of the
+  system's. Use for e.g. a "client" dimension where entering as a different
+  client implies different identifiers (ISINs vs house codes). Precedence:
+  option > system; if selected options in two dimensions both declare one,
+  the **last declared dimension wins** and a `convention-conflict` warning
+  is shown. The annotated view's provenance names the source
+  ("convention via Client: House entry").
+- You may add more dimensions (e.g. a "client" or "route" dimension with
   options); each selected option's fragment applies at stage 3 in the order
-  the dimensions are declared.
+  the dimensions are declared. The demo profile's Client dimension shows the
+  pattern: parties/account in the option fragments, plus a `convention`
+  override on the house-entry option.
 
 ---
 

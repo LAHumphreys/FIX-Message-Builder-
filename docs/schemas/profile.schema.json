@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "fix-message-builder/profile.schema.json",
   "title": "FIX Message Builder profile",
-  "description": "An environment definition: dictionary overlay, target systems, selector dimensions, fragments, generators, conventions, renderer configs, validation policy. See docs/BRIEF.md \u00a73.3.",
+  "description": "An environment definition: dictionary overlay, target systems, selector dimensions, fragments, generators, conventions, renderer configs, validation policy. See docs/BRIEF.md §3.3.",
   "type": "object",
   "required": ["schemaVersion", "name", "version", "fixVersion", "systems"],
   "properties": {
@@ -477,7 +477,7 @@
         },
         "finalFragment": {
           "type": "string",
-          "description": "Applied after all other stages \u2014 enforced fields cannot be clobbered."
+          "description": "Applied after all other stages — enforced fields cannot be clobbered."
         },
         "dictionaryOverlay": {
           "$ref": "#/$defs/dictionaryOverlay"
@@ -545,6 +545,10 @@
                   "type": "string"
                 },
                 "description": "System ids or cap:<tag> tokens; OR semantics; absent = everywhere."
+              },
+              "convention": {
+                "type": "string",
+                "description": "Identity-convention override: selecting this option renders instruments through this convention instead of the system's (precedence: option > system; if several selected options declare one, the last declared dimension wins with a finding)."
               }
             }
           }

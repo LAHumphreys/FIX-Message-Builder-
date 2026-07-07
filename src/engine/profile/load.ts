@@ -74,6 +74,8 @@ export function validateProfile(raw: unknown): ProfileLoadResult {
     fixVersion = raw.fixVersion as FixVersionId;
   }
 
+  const conventionNames = new Set(isRecord(raw.conventions) ? Object.keys(raw.conventions) : []);
+
   // Fragments
   const fragments: Record<string, Fragment> = {};
   if (raw.fragments !== undefined && !isRecord(raw.fragments)) {
@@ -144,6 +146,9 @@ export function validateProfile(raw: unknown): ProfileLoadResult {
       if (s.finalFragment && !fragments[s.finalFragment]) {
         warn(path + '/finalFragment', `unknown fragment '${s.finalFragment}'`);
       }
+      if (s.convention && !conventionNames.has(s.convention)) {
+        warn(path + '/convention', `unknown convention '${s.convention}'`);
+      }
     });
   }
 
@@ -166,6 +171,9 @@ export function validateProfile(raw: unknown): ProfileLoadResult {
       options?.forEach((o, j) => {
         if (o.fragment && !fragments[o.fragment]) {
           warn(`${path}/options/${j}/fragment`, `unknown fragment '${o.fragment}'`);
+        }
+        if (o.convention && !conventionNames.has(o.convention)) {
+          warn(`${path}/options/${j}/convention`, `unknown convention '${o.convention}'`);
         }
       });
       dimensions.push({

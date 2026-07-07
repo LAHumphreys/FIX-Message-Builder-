@@ -54,6 +54,11 @@ export interface SelectionResolution {
   readonly msgType: string;
   readonly mode: BuildMode;
   readonly findings: Finding[];
+  /** Identity-convention override from a selected option (§3.10);
+   *  precedence: option > system. */
+  readonly convention?: string;
+  /** Human label of what set the override, e.g. "Client: Desk account". */
+  readonly conventionSource?: string;
 }
 
 /** Resolve dimension selections into the fragment stack skeleton. */
@@ -65,6 +70,7 @@ export function resolveSelections(
   const stack: SourcedFragment[] = [...resolved.systemFragments];
   let msgType = 'D';
   let mode: BuildMode = 'single';
+  let convention: { name: string; source: string } | undefined;
 
   for (const dimension of resolved.profile.dimensions) {
     if (dimension.kind !== 'options') continue;
@@ -100,6 +106,18 @@ export function resolveSelections(
     }
     if (option.msgType) msgType = option.msgType;
     if (option.modes && option.modes.length > 0) mode = option.modes[0]!;
+    if (option.convention) {
+      const source = `${dimension.label}: ${option.label}`;
+      if (convention) {
+        findings.push({
+          ruleId: 'convention-conflict',
+          severity: 'warning',
+          path: '',
+          message: `Both ${convention.source} and ${source} set an identity convention; using '${option.convention}' (last declared dimension wins)`,
+        });
+      }
+      convention = { name: option.convention, source };
+    }
     if (option.fragment) {
       const fragment = resolved.profile.fragments[option.fragment];
       if (fragment) stack.push({ fragment, stage: 'dimension' });
@@ -110,7 +128,13 @@ export function resolveSelections(
   const template = templateRef ? resolved.profile.fragments[templateRef] : undefined;
   if (template) stack.unshift({ fragment: template, stage: 'template' });
 
-  return { stack, msgType, mode, findings };
+  return {
+    stack,
+    msgType,
+    mode,
+    findings,
+    ...(convention ? { convention: convention.name, conventionSource: convention.source } : {}),
+  };
 }
 
 export const USER_SOURCE = { id: 'user', label: 'User input' } as const;

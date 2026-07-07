@@ -32,6 +32,8 @@ export interface GroupBuildInput extends BuildInput {
 export interface InstrumentContext {
   readonly db: InstrumentDb;
   readonly convention: IdentityConvention;
+  /** Names a non-default convention source for provenance (§3.10). */
+  readonly conventionNote?: string;
 }
 
 export interface BatchBuildResult {
@@ -83,7 +85,8 @@ function rowInstrumentFragment(
     record,
     instruments.convention,
     context,
-    fixVersion ?? resolved.profile.fixVersion
+    fixVersion ?? resolved.profile.fixVersion,
+    instruments.conventionNote
   );
   findings.push(...placed.findings);
   return placed.fragment;
@@ -347,7 +350,8 @@ export function buildMultileg(
         record,
         instruments.convention,
         'leg',
-        input.fixVersion ?? resolved.profile.fixVersion
+        input.fixVersion ?? resolved.profile.fixVersion,
+        instruments.conventionNote
       );
       legStack.push({ fragment: placed.fragment, stage: 'instrument' });
       legFindings.push(...placed.findings);
@@ -386,7 +390,8 @@ export function buildMultileg(
       strategy,
       instruments.convention,
       'instrument',
-      input.fixVersion ?? resolved.profile.fixVersion
+      input.fixVersion ?? resolved.profile.fixVersion,
+      instruments.conventionNote
     );
     topStack.push({ fragment: placed.fragment, stage: 'instrument' });
     findings.push(...placed.findings);

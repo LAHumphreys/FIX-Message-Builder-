@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "Meridian Demo",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "fixVersion": "FIX.4.4",
   "dictionaryOverlay": {
     "fields": {
@@ -914,6 +914,74 @@
           }
         }
       ]
+    },
+    "client-desk": {
+      "label": "Client: Meridian desk",
+      "ops": [
+        {
+          "op": "group",
+          "countTag": 453,
+          "mode": "append",
+          "entries": [
+            [
+              {
+                "op": "set",
+                "tag": 448,
+                "value": "MERIDIAN-DESK"
+              },
+              {
+                "op": "set",
+                "tag": 447,
+                "value": "D"
+              },
+              {
+                "op": "set",
+                "tag": 452,
+                "value": "3"
+              }
+            ]
+          ]
+        },
+        {
+          "op": "slot",
+          "tag": 1,
+          "slot": {
+            "tag": 1,
+            "label": "Account",
+            "type": "string",
+            "default": "DESK-ACC"
+          }
+        }
+      ]
+    },
+    "client-house": {
+      "label": "Client: house entry",
+      "ops": [
+        {
+          "op": "group",
+          "countTag": 453,
+          "mode": "append",
+          "entries": [
+            [
+              {
+                "op": "set",
+                "tag": 448,
+                "value": "MERIDIAN-HOUSE"
+              },
+              {
+                "op": "set",
+                "tag": 447,
+                "value": "D"
+              },
+              {
+                "op": "set",
+                "tag": 452,
+                "value": "3"
+              }
+            ]
+          ]
+        }
+      ]
     }
   },
   "systems": [
@@ -1051,6 +1119,24 @@
           "msgType": "AB",
           "modes": ["multileg"],
           "availableOn": ["cap:multileg"]
+        }
+      ]
+    },
+    {
+      "id": "client",
+      "label": "Client",
+      "kind": "options",
+      "options": [
+        {
+          "id": "desk",
+          "label": "Meridian desk",
+          "fragment": "client-desk"
+        },
+        {
+          "id": "house",
+          "label": "House entry (house-code identifiers)",
+          "fragment": "client-house",
+          "convention": "house-composed"
         }
       ]
     },

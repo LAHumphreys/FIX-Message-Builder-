@@ -127,18 +127,24 @@ export function placeIdentity(
   return { ops, findings };
 }
 
-/** Wrap a placed identity as a merge-pipeline fragment (stage 'instrument'). */
+/** Wrap a placed identity as a merge-pipeline fragment (stage 'instrument').
+ *  `conventionNote` names a non-default convention source (e.g. an option
+ *  override — "Client: Desk account") so provenance shows why the identity
+ *  tags look the way they do. */
 export function instrumentFragment(
   record: InstrumentRecord | StrategyRecord,
   convention: IdentityConvention,
   context: PlacementContext,
-  fixVersion: FixVersionId
+  fixVersion: FixVersionId,
+  conventionNote?: string
 ): { fragment: Fragment; findings: readonly Finding[] } {
   const placed = placeIdentity(record, convention, context, fixVersion);
   return {
     fragment: {
       id: `instrument:${record.key}`,
-      label: `Instrument: ${record.name ?? record.key}`,
+      label: `Instrument: ${record.name ?? record.key}${
+        conventionNote ? ` · convention via ${conventionNote}` : ''
+      }`,
       ops: placed.ops,
     },
     findings: placed.findings,

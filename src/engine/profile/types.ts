@@ -55,6 +55,14 @@ export interface DimensionOption {
    * Absent = available everywhere.
    */
   readonly availableOn?: readonly string[];
+  /**
+   * Identity-convention override (§3.10): selecting this option makes
+   * instruments render through this convention instead of the system's
+   * (e.g. a client whose entry path expects different identifiers).
+   * Precedence: option > system; if several selected options declare one,
+   * the last declared dimension wins and a finding reports the conflict.
+   */
+  readonly convention?: string;
 }
 
 export interface DimensionDef {

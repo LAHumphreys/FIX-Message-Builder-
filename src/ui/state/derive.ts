@@ -109,13 +109,17 @@ export function useBuildResult(): DerivedBuild {
       : [selectionInfo.mode];
     const effectiveMode: BuildMode = mode === 'auto' ? (availableModes[0] ?? 'single') : mode;
 
-    // Instrument dimension selection.
+    // Instrument dimension selection. A selected option may override the
+    // system's identity convention (§3.10, e.g. per-client identifiers).
     const instrumentDim = profile.dimensions.find((d) => d.kind === 'instrument');
     const instrumentKey = instrumentDim ? selections[instrumentDim.id] : undefined;
-    const conventionRef = resolved.system.convention;
+    const conventionRef = selectionInfo.convention ?? resolved.system.convention;
+    const conventionNote = selectionInfo.convention ? selectionInfo.conventionSource : undefined;
     const convention = conventionRef ? profile.conventions?.[conventionRef] : undefined;
     const instruments: InstrumentContext | undefined =
-      instrumentDb && convention ? { db: instrumentDb, convention } : undefined;
+      instrumentDb && convention
+        ? { db: instrumentDb, convention, ...(conventionNote ? { conventionNote } : {}) }
+        : undefined;
     const record = instrumentKey
       ? (instrumentDb?.instruments.get(instrumentKey) ??
         instrumentDb?.strategies.get(instrumentKey))
@@ -190,7 +194,13 @@ export function useBuildResult(): DerivedBuild {
     } else {
       let instFragment: Fragment | undefined;
       if (record && convention) {
-        const placed = instrumentFragment(record, convention, 'instrument', fixVersion);
+        const placed = instrumentFragment(
+          record,
+          convention,
+          'instrument',
+          fixVersion,
+          conventionNote
+        );
         instFragment = placed.fragment;
         findings.push(...placed.findings);
       }
