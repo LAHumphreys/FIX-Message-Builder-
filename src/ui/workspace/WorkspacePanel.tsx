@@ -15,8 +15,10 @@ import {
   getActiveWorkspace,
   isWorkspaceSupported,
   pickWorkspaceDirectory,
+  readFixbSources,
   setActiveWorkspace,
 } from './fsa.ts';
+import { compileWorkspace } from '../../workspace-compiler/compile.ts';
 import { clearStoredHandle, loadStoredHandle, storeHandle } from './handleStore.ts';
 
 function scenarioFileName(name: string): string {
@@ -42,10 +44,77 @@ export function WorkspacePanel({ derived }: { derived: DerivedBuild }) {
   stateRef.current = state;
   const saveScenarioRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
+  const lastCompiledRef = useRef<string | undefined>(undefined);
+
+  /** fixb source repo: compile in the browser; the app previews live config. */
+  const loadFixb = useCallback(
+    async (ws: FsaWorkspace, initial: boolean): Promise<void> => {
+      const sources = await readFixbSources(ws);
+      const compiled = compileWorkspace(sources);
+      const errors = compiled.issues.filter((i) => i.severity === 'error');
+      if (!compiled.profileText || errors.length > 0) {
+        setError(
+          `fixb build failed: ${errors[0] ? `${errors[0].file} ${errors[0].path} — ${errors[0].message}` : 'no output'}` +
+            (errors.length > 1 ? ` (+${errors.length - 1} more)` : '')
+        );
+        return;
+      }
+      setError(undefined);
+      if (compiled.profileText !== lastCompiledRef.current) {
+        lastCompiledRef.current = compiled.profileText;
+        const { profile: loaded, issues } = parseProfile(compiled.profileText);
+        if (loaded && !initial) {
+          // Recompile of an already-attached workspace: hot-swap, keeping
+          // the tester's selections and values (live preview).
+          dispatch({ type: 'profile-hot-swapped', profile: loaded, issues });
+        } else {
+          dispatch({ type: 'profile-loaded', profile: loaded, issues });
+        }
+        if (compiled.instrumentsText) {
+          const { db, issues: dbIssues } = parseInstrumentDb(compiled.instrumentsText);
+          dispatch({ type: 'instruments-loaded', db, issues: dbIssues });
+        }
+      }
+      if (initial) {
+        // Instrument CRUD may write back only when there is exactly one JSON
+        // source file without the compiler's `defaults` sugar — otherwise the
+        // compiled DB cannot be split back into sources faithfully.
+        const sourceFiles = [...sources.keys()].filter((p) => p.startsWith('instruments/'));
+        const single = sourceFiles.length === 1 && sourceFiles[0]!.endsWith('.json');
+        const hasDefaults = single && (sources.get(sourceFiles[0]!) ?? '').includes('"defaults"');
+        if (single && !hasDefaults) {
+          const file = await ws.read(sourceFiles[0]!);
+          if (file) {
+            dispatch({
+              type: 'workspace-instruments-origin',
+              path: file.path,
+              token: file.modifiedToken,
+            });
+          }
+        }
+      }
+    },
+    [dispatch]
+  );
+
   const scan = useCallback(
     async (ws: FsaWorkspace, loadConfig: boolean) => {
       const scenarios = await ws.list('scenarios');
+      const isFixb = (await ws.read('workspace.json')) !== undefined;
+      if (isFixb && !loadConfig) {
+        // Live preview: recompile the sources on every rescan; the dispatch
+        // is skipped when the compiled output is unchanged.
+        await loadFixb(ws, false);
+      }
       if (loadConfig) {
+        if (isFixb) {
+          await loadFixb(ws, true);
+          dispatch({
+            type: 'workspace-attached',
+            workspace: { name: ws.name, kind: 'fixb', scenarios: [...scenarios] },
+          });
+          return;
+        }
         const profiles = (await ws.list('profile')).filter((e) => e.path.endsWith('.json'));
         const profileFile = profiles[0] && (await ws.read(profiles[0].path));
         if (profileFile) {
@@ -60,7 +129,7 @@ export function WorkspacePanel({ derived }: { derived: DerivedBuild }) {
         }
         dispatch({
           type: 'workspace-attached',
-          workspace: { name: ws.name, scenarios: [...scenarios] },
+          workspace: { name: ws.name, kind: 'plain', scenarios: [...scenarios] },
         });
         if (instrumentsFile) {
           dispatch({
@@ -83,7 +152,7 @@ export function WorkspacePanel({ derived }: { derived: DerivedBuild }) {
         });
       }
     },
-    [dispatch]
+    [dispatch, loadFixb]
   );
 
   // Offer one-click reattach for a handle persisted in IndexedDB.
@@ -246,6 +315,11 @@ export function WorkspacePanel({ derived }: { derived: DerivedBuild }) {
     <section className="panel">
       <div className="panel-header">
         Workspace: {workspace.name}
+        {workspace.kind === 'fixb' && (
+          <span className="badge-channel" title="fixb source workspace — compiled in the browser">
+            fixb
+          </span>
+        )}
         <span style={{ flex: 1 }} />
         <button
           className="btn small"
@@ -304,6 +378,12 @@ export function WorkspacePanel({ derived }: { derived: DerivedBuild }) {
               Save as copy
             </button>
           </div>
+        )}
+        {workspace.kind === 'fixb' && (
+          <p className="hint" style={{ margin: 0 }}>
+            Source workspace: edit <code>links/</code>, <code>flows/</code>… in your IDE — switching
+            back to this tab recompiles and refreshes the preview.
+          </p>
         )}
         {profile && (
           <button

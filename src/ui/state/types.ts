@@ -19,6 +19,9 @@ export type OutputTab = 'annotated' | 'raw' | 'json';
  *  only; the provider object lives outside the reducer. */
 export interface WorkspaceState {
   readonly name: string;
+  /** 'fixb' when the attached folder is a profile-source workspace
+   *  (workspace.json present) compiled in the browser; 'plain' otherwise. */
+  readonly kind: 'plain' | 'fixb';
   readonly scenarios: readonly { readonly path: string; readonly modifiedToken: string }[];
   /** Origin of the currently loaded scenario, for in-place save + dirty checks. */
   readonly loadedScenarioPath?: string;
@@ -134,6 +137,14 @@ export type Action =
       readonly findings: readonly Finding[];
     }
   | { readonly type: 'regenerate' }
+  | {
+      /** Live-preview recompile: swap the profile but KEEP selections and
+       *  slot values (§3.8 retargeting semantics — anything that no longer
+       *  resolves surfaces as findings, never a silent reset). */
+      readonly type: 'profile-hot-swapped';
+      readonly profile: Profile;
+      readonly issues: readonly ProfileIssue[];
+    }
   | { readonly type: 'workspace-attached'; readonly workspace: WorkspaceState }
   | { readonly type: 'workspace-detached' }
   | {

@@ -181,6 +181,22 @@ export function reducer(state: AppState, action: Action): AppState {
     }
     case 'regenerate':
       return { ...state, buildNonce: state.buildNonce + 1 };
+    case 'profile-hot-swapped': {
+      const systemStillExists = action.profile.systems.some((s) => s.id === state.systemId);
+      const mappingStillExists =
+        state.jsonMapping !== undefined &&
+        action.profile.renderers?.json?.[state.jsonMapping] !== undefined;
+      return {
+        ...state,
+        profile: action.profile,
+        profileIssues: action.issues,
+        systemId: systemStillExists ? state.systemId : action.profile.systems[0]?.id,
+        jsonMapping: mappingStillExists
+          ? state.jsonMapping
+          : Object.keys(action.profile.renderers?.json ?? {})[0],
+        buildNonce: state.buildNonce + 1,
+      };
+    }
     case 'workspace-attached':
       return { ...state, workspace: action.workspace };
     case 'workspace-detached':

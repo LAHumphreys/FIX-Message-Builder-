@@ -1,14 +1,24 @@
 /**
  * `fixb init` scaffold: a commented, working starter workspace. Every file
  * demonstrates the common case and points at the next rung ("//" keys are
- * stripped at build).
+ * stripped at build). Entity schemas are copied INTO the workspace and every
+ * file carries a $schema line, so IntelliJ/VS Code completion works offline
+ * with zero configuration.
  */
+import workspaceSchema from '../../docs/schemas/workspace/workspace.schema.json';
+import linkSchema from '../../docs/schemas/workspace/link.schema.json';
+import flowSchema from '../../docs/schemas/workspace/flow.schema.json';
+
 export function scaffold(): Map<string, string> {
   const j = (v: unknown) => JSON.stringify(v, null, 2) + '\n';
   return new Map<string, string>([
+    ['schemas/workspace.schema.json', j(workspaceSchema)],
+    ['schemas/link.schema.json', j(linkSchema)],
+    ['schemas/flow.schema.json', j(flowSchema)],
     [
       'workspace.json',
       j({
+        $schema: './schemas/workspace.schema.json',
         '//': 'Manifest — profile-wide facts. docs/PROFILE-WORKSPACE.md §4.1',
         name: 'RENAME ME',
         version: '0.1.0',
@@ -30,6 +40,7 @@ export function scaffold(): Map<string, string> {
     [
       'links/example-uat.json',
       j({
+        $schema: '../schemas/link.schema.json',
         '//': 'One file per FIX link. §4.2 — clients/routes become dropdowns.',
         label: 'EXAMPLE-UAT',
         session: { '49': 'RENAME-SENDER', '56': 'RENAME-TARGET' },
@@ -47,6 +58,7 @@ export function scaffold(): Map<string, string> {
     [
       'flows/limit.json',
       j({
+        $schema: '../schemas/flow.schema.json',
         '//': 'A plain flow: available everywhere. §4.3',
         label: 'Limit',
         fields: { '40': '2' },
@@ -66,6 +78,7 @@ export function scaffold(): Map<string, string> {
     [
       'flows/example-algo.json',
       j({
+        $schema: '../schemas/flow.schema.json',
         '//': 'An algo: opt-in per link (add "example-algo" to a link\'s "algos").',
         '// params': 'one entry declares the tag AND its form field — cannot desync',
         label: 'Example algo',
@@ -125,5 +138,69 @@ export function scaffold(): Map<string, string> {
         ],
       }),
     ],
+  ]);
+}
+
+/**
+ * `fixb init --idea`: JetBrains project files for a first-class WebStorm /
+ * IntelliJ experience — a File Watcher that rebuilds on save and explicit
+ * JSON-schema mappings (belt and braces alongside the $schema lines).
+ */
+export function ideaFiles(): Map<string, string> {
+  const watcher = `<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectTasksOptions">
+    <TaskOptions isEnabled="true">
+      <option name="arguments" value="fixb.mjs build $ProjectFileDir$ --out=$ProjectFileDir$/dist-config" />
+      <option name="checkSyntaxErrors" value="true" />
+      <option name="description" value="Rebuild the FIX profile on save (see BUILD-REPORT.md)" />
+      <option name="exitCodeBehavior" value="ERROR" />
+      <option name="fileExtension" value="json" />
+      <option name="immediateSync" value="false" />
+      <option name="name" value="fixb build" />
+      <option name="output" value="$ProjectFileDir$/dist-config" />
+      <option name="outputFromStdout" value="false" />
+      <option name="program" value="node" />
+      <option name="runOnExternalChanges" value="false" />
+      <option name="scopeName" value="Project Files" />
+      <option name="trackOnlyRoot" value="false" />
+      <option name="workingDir" value="$ProjectFileDir$" />
+      <envs />
+    </TaskOptions>
+  </component>
+</project>
+`;
+  const mapping = (name: string, schema: string, pattern: string) => `        <entry key="${name}">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="${name}" />
+              <option name="relativePathToSchema" value="${schema}" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="path" value="${pattern}" />
+                    <option name="pattern" value="true" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>`;
+  const schemas = `<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JsonSchemaMappingsProjectConfiguration">
+    <state>
+      <map>
+${mapping('fixb workspace', 'schemas/workspace.schema.json', 'workspace.json')}
+${mapping('fixb link', 'schemas/link.schema.json', 'links/*.json')}
+${mapping('fixb flow', 'schemas/flow.schema.json', 'flows/*.json')}
+      </map>
+    </state>
+  </component>
+</project>
+`;
+  return new Map([
+    ['.idea/watcherTasks.xml', watcher],
+    ['.idea/jsonSchemas.xml', schemas],
   ]);
 }

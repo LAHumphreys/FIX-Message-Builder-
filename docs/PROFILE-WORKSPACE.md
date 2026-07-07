@@ -13,12 +13,29 @@
 npm run build:fixb                 # bundle the CLI → dist-fixb/fixb.mjs
 
 # anywhere with Node (the bundle ships in internal-dist — no npm needed)
-node fixb.mjs init  profile-src    # scaffold a commented starter workspace
+node fixb.mjs init  profile-src [--idea]   # scaffold a starter workspace (+ IntelliJ files)
 node fixb.mjs build profile-src --out=dist-config   # assemble + validate + BUILD-REPORT.md
 node fixb.mjs build profile-src --out=dist-config --check   # CI: fail if outputs are stale
+node fixb.mjs watch profile-src --out=dist-config   # rebuild on change (IDE terminal)
 node fixb.mjs explain profile-src links/east-uat.json       # what did this file compile into?
 node fixb.mjs explode work.profile.json instruments.json --out=profile-src   # migrate
 ```
+
+**IDE experience (WebStorm / IntelliJ).** `init` copies the entity schemas
+into the workspace (`schemas/`) and stamps every file with `$schema`, so
+completion, enum restriction and required-property checks work offline with
+zero setup; `explode` stamps migrated files the same way. `init --idea`
+additionally writes `.idea/watcherTasks.xml` (a File Watcher running
+`fixb build` on save — BUILD-REPORT.md refreshes as you type) and
+`.idea/jsonSchemas.xml` (pattern-based schema mappings). Prefer a terminal?
+`fixb watch` does the same rebuild-on-save.
+
+**Live preview in the builder.** Attaching a fixb source workspace in the
+app (Workspace folder panel; the folder is recognized by its
+`workspace.json`) compiles it **in the browser**: edit `links/`/`flows/` in
+the IDE, refocus the browser tab, and the recompiled profile is loaded with
+compile errors surfaced in the panel. The compiled `work.profile.json`
+remains the deployment artifact; the preview never writes it.
 
 **Node compatibility**: the bundled CLI targets **Node ≥ 14.18** (esbuild
 `--target=node14.18`, no npm, no dependencies) and is exercised on real

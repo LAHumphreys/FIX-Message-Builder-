@@ -121,6 +121,27 @@ export class FsaWorkspace implements WorkspaceProvider {
   }
 }
 
+/** Directories the fixb compiler reads (docs/PROFILE-WORKSPACE.md §3). */
+const FIXB_DIRS = ['links', 'flows', 'conventions', 'mappings', 'instruments', 'fragments'];
+
+/** Collect a fixb source workspace's files (workspace.json present at root). */
+export async function readFixbSources(ws: FsaWorkspace): Promise<Map<string, string>> {
+  const files = new Map<string, string>();
+  const rootFiles = ['workspace.json', 'overrides.profile.json'];
+  for (const name of rootFiles) {
+    const file = await ws.read(name);
+    if (file) files.set(name, file.text);
+  }
+  for (const dir of FIXB_DIRS) {
+    for (const entry of await ws.list(dir)) {
+      if (!/\.(json|csv)$/i.test(entry.path)) continue;
+      const file = await ws.read(entry.path);
+      if (file) files.set(entry.path, file.text);
+    }
+  }
+  return files;
+}
+
 /* One workspace per app instance; the provider itself is not React state. */
 let active: FsaWorkspace | undefined;
 export function setActiveWorkspace(workspace: FsaWorkspace | undefined): void {

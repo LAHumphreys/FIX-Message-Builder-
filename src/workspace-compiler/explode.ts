@@ -100,7 +100,21 @@ export function explodeProfile(
   const notes: CompileIssue[] = [];
   const note = (message: string) =>
     notes.push({ severity: 'warning', file: '', path: '', message });
-  const emit = (path: string, value: unknown) => files.set(path, canonicalStringify(value));
+  const emit = (path: string, value: unknown) => {
+    const depth = path.split('/').length - 1;
+    const schemaFor = path.startsWith('links/')
+      ? 'link'
+      : path.startsWith('flows/')
+        ? 'flow'
+        : path === 'workspace.json'
+          ? 'workspace'
+          : undefined;
+    const stamped =
+      schemaFor && typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? { $schema: `${'../'.repeat(depth)}schemas/${schemaFor}.schema.json`, ...value }
+        : value;
+    files.set(path, canonicalStringify(stamped));
+  };
 
   const { profile, issues } = parseProfile(profileTextIn);
   if (!profile) {

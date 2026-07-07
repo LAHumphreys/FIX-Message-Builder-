@@ -46,6 +46,17 @@ describe('reducer', () => {
     expect(loaded.dictionaryError).toBeUndefined();
   });
 
+  it('profile-hot-swapped keeps selections and slot values (live preview)', () => {
+    let s = reducer(initialState, { type: 'profile-loaded', profile, issues });
+    s = reducer(s, { type: 'select-option', dimensionId: 'flow', optionId: 'limit' });
+    s = reducer(s, { type: 'set-slot', tag: 38, value: '42' });
+    const swapped = reducer(s, { type: 'profile-hot-swapped', profile: profile!, issues: [] });
+    expect(swapped.selections).toEqual(s.selections);
+    expect(swapped.slotValues).toEqual({ '38': '42' });
+    expect(swapped.systemId).toBe(s.systemId);
+    expect(swapped.buildNonce).toBe(s.buildNonce + 1);
+  });
+
   it('select-system keeps selections and slot values (retargeting)', () => {
     const loaded = reducer(initialState, { type: 'profile-loaded', profile, issues });
     const chosen = reducer(loaded, {

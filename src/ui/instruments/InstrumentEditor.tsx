@@ -368,6 +368,13 @@ export function InstrumentEditor({ onClose }: { onClose: () => void }) {
               Schemes required by the selected system's convention are pre-filled when adding.
               Target systems are configured in the fixb profile workspace, not here.
             </p>
+            {workspace?.kind === 'fixb' && !workspace.instrumentsPath && (
+              <p className="hint" style={{ margin: 0 }}>
+                This fixb workspace compiles instruments from several source files — in-app edits
+                can only be downloaded (or edit <code>instruments/*.json</code> in your IDE and
+                refocus this tab to recompile).
+              </p>
+            )}
           </div>
         )}
       </div>

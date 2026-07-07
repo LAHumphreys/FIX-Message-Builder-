@@ -35,8 +35,10 @@ Full detail in **docs/WORKFLOW.md**. The short version:
   dependencies. `src/ui/` is thin React over the engine's public surface
   (`src/engine/index.ts`) and holds no business logic.
   `src/workspace-compiler/` (the fixb config toolchain, docs/PROFILE-WORKSPACE.md)
-  is pure TS over engine internals; only `cli.ts` touches the filesystem, and
-  nothing in `src/ui/` or `src/engine/` may import from it.
+  is pure TS over engine internals; only `cli.ts`/`cli-main.ts` touch the
+  filesystem (node-only, never bundled into the app). `src/ui/` may import the
+  compiler's pure modules (in-browser compile of attached fixb workspaces);
+  `src/engine/` and the compiler itself must not import from `src/ui/`.
 - **The tool never refuses to render.** Validation informs (error/warning/info
   badges); it must never block output — malformed messages are legitimate test
   inputs.

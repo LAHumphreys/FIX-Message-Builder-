@@ -9,13 +9,21 @@
  * This file is the only place with filesystem access; the compiler core is
  * pure. Bundled dependency-free (esbuild) for office use without npm.
  */
-import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync, existsSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  watch as fsWatch,
+  writeFileSync,
+} from 'node:fs';
 import { join, relative } from 'node:path';
 import { compileWorkspace, type CompiledWorkspace } from './compile.ts';
 import { buildReport, lintWorkspace } from './report.ts';
 import { generateGoldens } from './goldens.ts';
 import { explodeProfile } from './explode.ts';
-import { scaffold } from './init.ts';
+import { ideaFiles, scaffold } from './init.ts';
 import { parseProfile } from '../engine/profile/load.ts';
 import { parseInstrumentDb } from '../engine/instrument/db.ts';
 import type { CompileIssue } from './types.ts';
@@ -171,8 +179,9 @@ function explodeCmd(
   return 0;
 }
 
-function initCmd(dir: string): number {
-  for (const [path, content] of scaffold()) {
+function initCmd(dir: string, idea: boolean): number {
+  const files = new Map([...scaffold(), ...(idea ? ideaFiles() : [])]);
+  for (const [path, content] of files) {
     const full = join(dir, path);
     if (existsSync(full)) {
       console.log(`skip  ${full} (exists)`);
@@ -182,7 +191,34 @@ function initCmd(dir: string): number {
     writeFileSync(full, content);
     console.log(`wrote ${full}`);
   }
-  console.log(`\nworkspace scaffolded — edit the files, then 'fixb build ${dir}'.`);
+  console.log(
+    `\nworkspace scaffolded — edit the files, then 'fixb build ${dir}'.` +
+      (idea
+        ? ' IntelliJ users: reopen the project to pick up the File Watcher + schema mappings.'
+        : " (tip: 'fixb init --idea' also writes IntelliJ File Watcher + schema mappings)")
+  );
+  return 0;
+}
+
+/** Rebuild on change — per-directory fs.watch (recursive watch needs newer
+ *  Node on Linux; this stays compatible with the Node ≥14.18 floor). */
+async function watchCmd(src: string, outDir: string): Promise<number> {
+  const run = async () => {
+    const started = Date.now();
+    const code = await build(src, outDir, false);
+    console.log(`— ${code === 0 ? 'ok' : 'FAILED'} in ${Date.now() - started}ms; watching…\n`);
+  };
+  await run();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const trigger = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => void run(), 250);
+  };
+  const dirs = ['', 'links', 'flows', 'conventions', 'mappings', 'instruments', 'fragments']
+    .map((d) => join(src, d))
+    .filter((d) => existsSync(d));
+  for (const dir of dirs) fsWatch(dir, trigger);
+  await new Promise(() => undefined); // run until Ctrl+C
   return 0;
 }
 
@@ -210,7 +246,9 @@ export async function main(argv: readonly string[]): Promise<number> {
       }
       return explodeCmd(rest[0], rest[1], outFlag ?? 'profile-src');
     case 'init':
-      return initCmd(rest[0] ?? 'profile-src');
+      return initCmd(rest[0] ?? 'profile-src', flags.has('--idea'));
+    case 'watch':
+      return watchCmd(rest[0] ?? '.', outFlag ?? rest[0] ?? '.');
     default:
       console.error(
         'fixb — FIX Message Builder profile workspace tool\n\n' +
@@ -219,7 +257,8 @@ export async function main(argv: readonly string[]): Promise<number> {
           '  fixb explain [src] <entity-file>           show what a source file compiles into\n' +
           '  fixb explode <profile.json> [instruments.json] [--out=dir]\n' +
           '                                             decompile an existing profile into a workspace\n' +
-          '  fixb init    [dir]                         scaffold a commented starter workspace\n\n' +
+          '  fixb init    [dir] [--idea]                scaffold a starter workspace (+ IntelliJ files)\n' +
+          '  fixb watch   [src] [--out=dir]             rebuild on change (for the IDE terminal)\n\n' +
           'docs: docs/PROFILE-WORKSPACE.md'
       );
       return command ? 1 : 0;
