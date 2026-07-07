@@ -3,13 +3,15 @@
  *
  *   fixb build   [src] [--out dir] [--check]
  *   fixb explain [src] <entity-file>
- *   fixb explode <profile.json> [instruments.json] [--out dir]
- *   fixb init    [dir]
+ *   fixb explode <profile.json> [instruments.json] [--out dir] [--idea]
+ *   fixb init    [dir] [--idea]
+ *   fixb watch   [src] [--out dir]
  *
  * This file is the only place with filesystem access; the compiler core is
  * pure. Bundled dependency-free (esbuild) for office use without npm.
  */
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -23,7 +25,7 @@ import { compileWorkspace, type CompiledWorkspace } from './compile.ts';
 import { buildReport, lintWorkspace } from './report.ts';
 import { generateGoldens } from './goldens.ts';
 import { explodeProfile } from './explode.ts';
-import { ideaFiles, scaffold } from './init.ts';
+import { ideaFiles, scaffold, schemaFiles } from './init.ts';
 import { parseProfile } from '../engine/profile/load.ts';
 import { parseInstrumentDb } from '../engine/instrument/db.ts';
 import type { CompileIssue } from './types.ts';
@@ -160,10 +162,39 @@ function explain(src: string, entity: string): number {
   return 0;
 }
 
+/** Copy the running bundled CLI into the workspace so it is self-contained:
+ *  the .idea File Watcher runs `node fixb.mjs build` with the workspace as
+ *  its working directory, and the tool version travels with the config when
+ *  the workspace is committed to a private repo. No-op when running the
+ *  unbundled sources (tests/dev) — there is no portable single file to copy. */
+function copySelfInto(dir: string): void {
+  const self = process.argv[1];
+  if (!self || !self.endsWith('fixb.mjs')) return;
+  const dest = join(dir, 'fixb.mjs');
+  if (existsSync(dest)) return;
+  copyFileSync(self, dest);
+  console.log(`wrote ${dest} (the build tool travels with the workspace)`);
+}
+
+/** Write files, skipping any that already exist (never clobber user edits). */
+function writeNew(dir: string, files: Map<string, string>): void {
+  for (const [path, content] of files) {
+    const full = join(dir, path);
+    if (existsSync(full)) {
+      console.log(`skip  ${full} (exists)`);
+      continue;
+    }
+    mkdirSync(join(full, '..'), { recursive: true });
+    writeFileSync(full, content);
+    console.log(`wrote ${full}`);
+  }
+}
+
 function explodeCmd(
   profilePath: string,
   instrumentsPath: string | undefined,
-  outDir: string
+  outDir: string,
+  idea: boolean
 ): number {
   const profileText = readFileSync(profilePath, 'utf8');
   const instrumentsText = instrumentsPath ? readFileSync(instrumentsPath, 'utf8') : undefined;
@@ -175,26 +206,20 @@ function explodeCmd(
     writeFileSync(full, content);
     console.log(`wrote ${full}`);
   }
+  // The exploded files carry $schema references — make them resolve.
+  writeNew(outDir, new Map([...schemaFiles(), ...(idea ? ideaFiles() : [])]));
+  copySelfInto(outDir);
   console.log(`\nexploded into ${outDir}/ — run 'fixb build ${outDir}' to verify it compiles.`);
   return 0;
 }
 
 function initCmd(dir: string, idea: boolean): number {
-  const files = new Map([...scaffold(), ...(idea ? ideaFiles() : [])]);
-  for (const [path, content] of files) {
-    const full = join(dir, path);
-    if (existsSync(full)) {
-      console.log(`skip  ${full} (exists)`);
-      continue;
-    }
-    mkdirSync(join(full, '..'), { recursive: true });
-    writeFileSync(full, content);
-    console.log(`wrote ${full}`);
-  }
+  writeNew(dir, new Map([...scaffold(), ...(idea ? ideaFiles() : [])]));
+  copySelfInto(dir);
   console.log(
     `\nworkspace scaffolded — edit the files, then 'fixb build ${dir}'.` +
       (idea
-        ? ' IntelliJ users: reopen the project to pick up the File Watcher + schema mappings.'
+        ? ' IntelliJ users: open this folder as the project to pick up the File Watcher + schema mappings.'
         : " (tip: 'fixb init --idea' also writes IntelliJ File Watcher + schema mappings)")
   );
   return 0;
@@ -241,10 +266,10 @@ export async function main(argv: readonly string[]): Promise<number> {
     }
     case 'explode':
       if (!rest[0]) {
-        console.error('usage: fixb explode <profile.json> [instruments.json] [--out=dir]');
+        console.error('usage: fixb explode <profile.json> [instruments.json] [--out=dir] [--idea]');
         return 1;
       }
-      return explodeCmd(rest[0], rest[1], outFlag ?? 'profile-src');
+      return explodeCmd(rest[0], rest[1], outFlag ?? 'profile-src', flags.has('--idea'));
     case 'init':
       return initCmd(rest[0] ?? 'profile-src', flags.has('--idea'));
     case 'watch':
@@ -255,7 +280,7 @@ export async function main(argv: readonly string[]): Promise<number> {
           'usage:\n' +
           '  fixb build   [src] [--out=dir] [--check]   assemble + validate + report (+ goldens)\n' +
           '  fixb explain [src] <entity-file>           show what a source file compiles into\n' +
-          '  fixb explode <profile.json> [instruments.json] [--out=dir]\n' +
+          '  fixb explode <profile.json> [instruments.json] [--out=dir] [--idea]\n' +
           '                                             decompile an existing profile into a workspace\n' +
           '  fixb init    [dir] [--idea]                scaffold a starter workspace (+ IntelliJ files)\n' +
           '  fixb watch   [src] [--out=dir]             rebuild on change (for the IDE terminal)\n\n' +

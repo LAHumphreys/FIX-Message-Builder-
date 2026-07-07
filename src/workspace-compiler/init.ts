@@ -9,12 +9,21 @@ import workspaceSchema from '../../docs/schemas/workspace/workspace.schema.json'
 import linkSchema from '../../docs/schemas/workspace/link.schema.json';
 import flowSchema from '../../docs/schemas/workspace/flow.schema.json';
 
-export function scaffold(): Map<string, string> {
+/** The entity schemas, as workspace files — shared by `init` and `explode`
+ *  so every workspace's `$schema` references resolve offline. */
+export function schemaFiles(): Map<string, string> {
   const j = (v: unknown) => JSON.stringify(v, null, 2) + '\n';
   return new Map<string, string>([
     ['schemas/workspace.schema.json', j(workspaceSchema)],
     ['schemas/link.schema.json', j(linkSchema)],
     ['schemas/flow.schema.json', j(flowSchema)],
+  ]);
+}
+
+export function scaffold(): Map<string, string> {
+  const j = (v: unknown) => JSON.stringify(v, null, 2) + '\n';
+  return new Map<string, string>([
+    ...schemaFiles(),
     [
       'workspace.json',
       j({
