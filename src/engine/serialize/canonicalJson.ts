@@ -11,7 +11,19 @@ function sortValue(value: unknown): unknown {
     const entries = Object.entries(value as Record<string, unknown>).sort(([a], [b]) =>
       a < b ? -1 : a > b ? 1 : 0
     );
-    return Object.fromEntries(entries.map(([k, v]) => [k, sortValue(v)]));
+    // No Object.fromEntries — the fixb bundle runs on bare Node 10.
+    // defineProperty, not assignment: a '__proto__' key must become an own
+    // property (as fromEntries and JSON.parse make it), not set the prototype.
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of entries) {
+      Object.defineProperty(out, k, {
+        value: sortValue(v),
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
+    }
+    return out;
   }
   return value;
 }

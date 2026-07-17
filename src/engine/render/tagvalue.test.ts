@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkSum, byteLength, SOH } from './checksum.ts';
+import { checkSum, byteLength, encodeBytes, SOH } from './checksum.ts';
 import { flattenFields, renderTagValue } from './tagvalue.ts';
 import { field, group } from '../message/builders.ts';
 import type { FixMessage, Provenance } from '../message/types.ts';
@@ -201,5 +201,21 @@ describe('flattenFields', () => {
       { tag: 454, value: '1' },
       { tag: 455, value: 'X' },
     ]);
+  });
+});
+
+describe('encodeBytes (hand-rolled UTF-8 for the Node 10 CLI floor)', () => {
+  it.each([
+    ['ascii wire', '8=FIX.4.4\x0135=D\x01'],
+    ['latin-1 range', 'café £9.50'],
+    ['multibyte + 4-byte astral', 'ümlaut — 東京 𝄞'],
+    ['empty', ''],
+  ])('matches TextEncoder byte-for-byte: %s', (_name, s) => {
+    expect([...encodeBytes(s)]).toEqual([...new TextEncoder().encode(s)]);
+  });
+
+  it('encodes a lone surrogate as U+FFFD, matching TextEncoder', () => {
+    const lone = 'a\ud800b';
+    expect([...encodeBytes(lone)]).toEqual([...new TextEncoder().encode(lone)]);
   });
 });

@@ -109,17 +109,16 @@ function rowSlotFragments(
     else merged.set(Number(tag), value);
   }
 
-  const defaults: FragmentOp[] = slots
-    .filter((s) => !merged.has(s.spec.tag))
-    .flatMap((s): FragmentOp[] => {
-      if (s.spec.generatorDefault !== undefined) {
-        return [{ op: 'setGenerated', tag: s.spec.tag, generator: s.spec.generatorDefault }];
-      }
-      if (s.spec.default !== undefined) {
-        return [{ op: 'set', tag: s.spec.tag, value: s.spec.default }];
-      }
-      return [];
-    });
+  // No Array#flatMap — this runs on bare Node 10 via the fixb bundle.
+  const defaults: FragmentOp[] = [];
+  for (const s of slots) {
+    if (merged.has(s.spec.tag)) continue;
+    if (s.spec.generatorDefault !== undefined) {
+      defaults.push({ op: 'setGenerated', tag: s.spec.tag, generator: s.spec.generatorDefault });
+    } else if (s.spec.default !== undefined) {
+      defaults.push({ op: 'set', tag: s.spec.tag, value: s.spec.default });
+    }
+  }
   const users: FragmentOp[] = [...merged.entries()].map(([tag, value]) => ({
     op: 'set',
     tag,

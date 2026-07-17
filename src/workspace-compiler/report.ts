@@ -12,9 +12,14 @@ import type { ValueSource } from '../engine/instrument/convention.ts';
 import type { CompileIssue } from './types.ts';
 import type { CompiledWorkspace } from './compile.ts';
 
+// No Array#flatMap in this module — the fixb bundle runs on bare Node 10.
 function schemesIn(source: ValueSource): string[] {
   if ('scheme' in source) return [source.scheme];
-  if ('firstOf' in source) return source.firstOf.flatMap(schemesIn);
+  if ('firstOf' in source) {
+    const out: string[] = [];
+    for (const s of source.firstOf) out.push(...schemesIn(s));
+    return out;
+  }
   return [];
 }
 
@@ -74,11 +79,12 @@ export function lintWorkspace(
     for (const name of used) {
       const convention = profile.conventions?.[name];
       if (!convention) continue;
-      const requiredSchemes = new Set(
-        convention.variants.flatMap((v) =>
-          v.emit.filter((e) => e.required).flatMap((e) => schemesIn(e.from))
-        )
-      );
+      const requiredSchemes = new Set<string>();
+      for (const v of convention.variants) {
+        for (const e of v.emit) {
+          if (e.required) for (const s of schemesIn(e.from)) requiredSchemes.add(s);
+        }
+      }
       for (const scheme of requiredSchemes) {
         const missing = [...db.instruments.values()].filter((r) => !r.schemes?.[scheme]);
         if (missing.length > 0) {

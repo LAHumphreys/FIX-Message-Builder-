@@ -11,10 +11,30 @@
 
 export const SOH = '\x01';
 
-const encoder = new TextEncoder();
-
+/** UTF-8 encode without TextEncoder — a global only since Node 11, and the
+ *  fixb CLI bundle must run on bare Node 10 office machines. Pure and
+ *  environment-free, like the rest of the engine. */
 export function encodeBytes(s: string): Uint8Array {
-  return encoder.encode(s);
+  const out: number[] = [];
+  for (let i = 0; i < s.length; i++) {
+    let cp = s.codePointAt(i)!;
+    if (cp > 0xffff) i++; // surrogate pair consumed
+    if (cp < 0x80) out.push(cp);
+    else if (cp < 0x800) out.push(0xc0 | (cp >> 6), 0x80 | (cp & 0x3f));
+    else if (cp < 0x10000) {
+      // Lone surrogates encode as U+FFFD, matching TextEncoder.
+      if (cp >= 0xd800 && cp <= 0xdfff) cp = 0xfffd;
+      out.push(0xe0 | (cp >> 12), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f));
+    } else {
+      out.push(
+        0xf0 | (cp >> 18),
+        0x80 | ((cp >> 12) & 0x3f),
+        0x80 | ((cp >> 6) & 0x3f),
+        0x80 | (cp & 0x3f)
+      );
+    }
+  }
+  return Uint8Array.from(out);
 }
 
 /** Byte length of a message segment (UTF-8). */

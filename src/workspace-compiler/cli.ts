@@ -19,8 +19,10 @@ import {
   statSync,
   watch as fsWatch,
   writeFileSync,
-} from 'node:fs';
-import { join, relative } from 'node:path';
+  // Bare specifiers, not 'node:fs' — require('node:…') only works on
+  // Node ≥ 14.18 and the CJS bundle must run on bare Node 10.
+} from 'fs';
+import { join, relative } from 'path';
 import { compileWorkspace, type CompiledWorkspace } from './compile.ts';
 import { buildReport, lintWorkspace } from './report.ts';
 import { generateGoldens } from './goldens.ts';
@@ -29,6 +31,14 @@ import { ideaFiles, scaffold, schemaFiles } from './init.ts';
 import { parseProfile } from '../engine/profile/load.ts';
 import { parseInstrumentDb } from '../engine/instrument/db.ts';
 import type { CompileIssue } from './types.ts';
+
+/** mkdir -p without {recursive:true}, which needs Node ≥ 10.12 — the office
+ *  floor is bare Node 10.x. */
+function ensureDir(dir: string): void {
+  if (existsSync(dir)) return;
+  ensureDir(join(dir, '..'));
+  mkdirSync(dir);
+}
 
 function readWorkspace(dir: string): Map<string, string> {
   const files = new Map<string, string>();
@@ -111,8 +121,12 @@ async function build(src: string, outDir: string, check: boolean): Promise<numbe
     return 0;
   }
 
+  // Skip unchanged outputs: keeps timestamps honest and, critically, stops
+  // `fixb watch` from re-triggering itself when outDir sits inside the
+  // watched source tree (the write echoes back as a filesystem event).
   for (const o of outputs) {
-    mkdirSync(join(o.path, '..'), { recursive: true });
+    if (existsSync(o.path) && readFileSync(o.path, 'utf8') === o.content) continue;
+    ensureDir(join(o.path, '..'));
     writeFileSync(o.path, o.content);
     console.log(`wrote ${o.path}`);
   }
@@ -163,14 +177,14 @@ function explain(src: string, entity: string): number {
 }
 
 /** Copy the running bundled CLI into the workspace so it is self-contained:
- *  the .idea File Watcher runs `node fixb.mjs build` with the workspace as
+ *  the .idea File Watcher runs `node fixb.cjs build` with the workspace as
  *  its working directory, and the tool version travels with the config when
  *  the workspace is committed to a private repo. No-op when running the
  *  unbundled sources (tests/dev) — there is no portable single file to copy. */
 function copySelfInto(dir: string): void {
   const self = process.argv[1];
-  if (!self || !self.endsWith('fixb.mjs')) return;
-  const dest = join(dir, 'fixb.mjs');
+  if (!self || !/fixb\.(cjs|mjs)$/.test(self)) return;
+  const dest = join(dir, 'fixb.cjs');
   if (existsSync(dest)) return;
   copyFileSync(self, dest);
   console.log(`wrote ${dest} (the build tool travels with the workspace)`);
@@ -184,7 +198,7 @@ function writeNew(dir: string, files: Map<string, string>): void {
       console.log(`skip  ${full} (exists)`);
       continue;
     }
-    mkdirSync(join(full, '..'), { recursive: true });
+    ensureDir(join(full, '..'));
     writeFileSync(full, content);
     console.log(`wrote ${full}`);
   }
@@ -202,7 +216,7 @@ function explodeCmd(
   printIssues(notes);
   for (const [path, content] of files) {
     const full = join(outDir, path);
-    mkdirSync(join(full, '..'), { recursive: true });
+    ensureDir(join(full, '..'));
     writeFileSync(full, content);
     console.log(`wrote ${full}`);
   }

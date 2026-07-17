@@ -10,7 +10,7 @@ acceptance criteria in detail.
 - `npm run verify` — everything CI runs: typecheck, lint, format check, tests, build, privacy check
 - `npm run test` / `npm run test:watch` / `npm run test:coverage`
 - `npm run dev` — Vite dev server
-- `npm run build:fixb` — bundle the profile-workspace CLI (`dist-fixb/fixb.mjs`, Node ≥14.18, no deps)
+- `npm run build:fixb` — bundle the profile-workspace CLI (`dist-fixb/fixb.cjs`, CommonJS, runs on bare Node ≥10, no deps)
 
 ## Branch & deployment workflow
 

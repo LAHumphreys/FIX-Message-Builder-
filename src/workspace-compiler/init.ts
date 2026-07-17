@@ -160,7 +160,7 @@ export function ideaFiles(): Map<string, string> {
 <project version="4">
   <component name="ProjectTasksOptions">
     <TaskOptions isEnabled="true">
-      <option name="arguments" value="fixb.mjs build $ProjectFileDir$ --out=$ProjectFileDir$/dist-config" />
+      <option name="arguments" value="fixb.cjs build $ProjectFileDir$ --out=$ProjectFileDir$/dist-config" />
       <option name="checkSyntaxErrors" value="true" />
       <option name="description" value="Rebuild the FIX profile on save (see BUILD-REPORT.md)" />
       <option name="exitCodeBehavior" value="ERROR" />

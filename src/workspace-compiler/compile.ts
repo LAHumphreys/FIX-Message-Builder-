@@ -20,11 +20,20 @@ function isRecord(v: unknown): v is Json {
 export function stripComments(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(stripComments);
   if (isRecord(value)) {
-    return Object.fromEntries(
-      Object.entries(value)
-        .filter(([k]) => !k.startsWith('//'))
-        .map(([k, v]) => [k, stripComments(v)])
-    );
+    // No Object.fromEntries — the fixb bundle runs on bare Node 10.
+    // defineProperty, not assignment: a '__proto__' key must become an own
+    // property (as fromEntries and JSON.parse make it), not set the prototype.
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (k.startsWith('//')) continue;
+      Object.defineProperty(out, k, {
+        value: stripComments(v),
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
+    }
+    return out;
   }
   return value;
 }

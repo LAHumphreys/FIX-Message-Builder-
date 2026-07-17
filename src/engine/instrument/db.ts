@@ -9,6 +9,7 @@ import type {
   InstrumentDb,
   InstrumentDbIssue,
   InstrumentRecord,
+  StrategyLeg,
   StrategyRecord,
 } from './types.ts';
 
@@ -91,14 +92,16 @@ export function parseInstrumentDbJson(text: string): InstrumentDbLoadResult {
         issues.push({ severity: 'error', path, message: 'strategy needs a key and legs array' });
         return;
       }
-      const legs = s.legs.flatMap((leg, j) => {
+      // No Array#flatMap — this runs on bare Node 10 via the fixb bundle.
+      const legs: StrategyLeg[] = [];
+      s.legs.forEach((leg, j) => {
         if (!isRecord(leg) || typeof leg.instrument !== 'string') {
           issues.push({
             severity: 'error',
             path: `${path}/legs/${j}`,
             message: 'leg needs an instrument key',
           });
-          return [];
+          return;
         }
         if (!instruments.has(leg.instrument)) {
           issues.push({
@@ -108,15 +111,13 @@ export function parseInstrumentDbJson(text: string): InstrumentDbLoadResult {
           });
         }
         const legExtra = extraKeys(leg, ['instrument', 'ratioQty', 'side', 'price']);
-        return [
-          {
-            instrument: leg.instrument,
-            ratioQty: typeof leg.ratioQty === 'string' ? leg.ratioQty : '1',
-            side: typeof leg.side === 'string' ? leg.side : '1',
-            ...(typeof leg.price === 'string' ? { price: leg.price } : {}),
-            ...(legExtra ? { extra: legExtra } : {}),
-          },
-        ];
+        legs.push({
+          instrument: leg.instrument,
+          ratioQty: typeof leg.ratioQty === 'string' ? leg.ratioQty : '1',
+          side: typeof leg.side === 'string' ? leg.side : '1',
+          ...(typeof leg.price === 'string' ? { price: leg.price } : {}),
+          ...(legExtra ? { extra: legExtra } : {}),
+        });
       });
       const strategyExtra = extraKeys(s, [
         'key',

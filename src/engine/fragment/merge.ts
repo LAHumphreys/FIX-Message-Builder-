@@ -166,11 +166,17 @@ function applyOps(
 
 export function mergeFragments(stack: readonly SourcedFragment[], ctx: MergeContext): MergeResult {
   // Stable sort into normative stage order — §3.4 is enforced here, not
-  // trusted from the caller.
+  // trusted from the caller. The index tiebreak makes stability explicit:
+  // same-stage fragments must keep caller order even where Array#sort is
+  // unstable (Node ≤ 10, where the fixb CLI runs this via goldens).
   const stageIndex = new Map(MERGE_STAGES.map((s, i) => [s, i]));
-  const ordered = [...stack].sort(
-    (a, b) => (stageIndex.get(a.stage) ?? 0) - (stageIndex.get(b.stage) ?? 0)
-  );
+  const ordered = stack
+    .map((entry, i) => ({ entry, i }))
+    .sort(
+      (a, b) =>
+        (stageIndex.get(a.entry.stage) ?? 0) - (stageIndex.get(b.entry.stage) ?? 0) || a.i - b.i
+    )
+    .map((x) => x.entry);
 
   const fields: Field[] = [];
   const notices: MergeNotice[] = [];

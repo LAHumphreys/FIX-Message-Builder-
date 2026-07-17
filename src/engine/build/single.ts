@@ -174,20 +174,20 @@ export function buildSingle(
     label: USER_SOURCE.label,
     ops: [...userValues.entries()].map(([tag, value]) => ({ op: 'set', tag, value })),
   };
+  // No Array#flatMap — this runs on bare Node 10 via the fixb bundle.
+  const defaultOps: FragmentOp[] = [];
+  for (const s of discovery.slots) {
+    if (userValues.has(s.spec.tag)) continue;
+    if (s.spec.generatorDefault !== undefined) {
+      defaultOps.push({ op: 'setGenerated', tag: s.spec.tag, generator: s.spec.generatorDefault });
+    } else if (s.spec.default !== undefined) {
+      defaultOps.push({ op: 'set', tag: s.spec.tag, value: s.spec.default });
+    }
+  }
   const defaultsFragment: Fragment = {
     id: DEFAULT_SOURCE.id,
     label: DEFAULT_SOURCE.label,
-    ops: discovery.slots
-      .filter((s) => !userValues.has(s.spec.tag))
-      .flatMap((s): FragmentOp[] => {
-        if (s.spec.generatorDefault !== undefined) {
-          return [{ op: 'setGenerated', tag: s.spec.tag, generator: s.spec.generatorDefault }];
-        }
-        if (s.spec.default !== undefined) {
-          return [{ op: 'set', tag: s.spec.tag, value: s.spec.default }];
-        }
-        return [];
-      }),
+    ops: defaultOps,
   };
 
   const fullStack: SourcedFragment[] = [
