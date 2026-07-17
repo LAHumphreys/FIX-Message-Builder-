@@ -4,6 +4,7 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
 var __commonJS = (cb, mod) => function __require() {
   try {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
@@ -27,11 +28,12 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // src/engine/dictionary/data/fix42.json
 var require_fix42 = __commonJS({
-  "src/engine/dictionary/data/fix42.json"(exports, module) {
-    module.exports = {
+  "src/engine/dictionary/data/fix42.json"(exports2, module2) {
+    module2.exports = {
       fix: "FIX.4.2",
       formatVersion: 1,
       partial: false,
@@ -2872,8 +2874,8 @@ var require_fix42 = __commonJS({
 
 // src/engine/dictionary/data/fix44.json
 var require_fix44 = __commonJS({
-  "src/engine/dictionary/data/fix44.json"(exports, module) {
-    module.exports = {
+  "src/engine/dictionary/data/fix44.json"(exports2, module2) {
+    module2.exports = {
       fix: "FIX.4.4",
       formatVersion: 1,
       partial: false,
@@ -9446,8 +9448,8 @@ var require_fix44 = __commonJS({
 
 // src/engine/dictionary/data/fix50sp2.json
 var require_fix50sp2 = __commonJS({
-  "src/engine/dictionary/data/fix50sp2.json"(exports, module) {
-    module.exports = {
+  "src/engine/dictionary/data/fix50sp2.json"(exports2, module2) {
+    module2.exports = {
       fix: "FIX.5.0SP2",
       formatVersion: 1,
       partial: false,
@@ -34377,17 +34379,8 @@ var require_fix50sp2 = __commonJS({
 });
 
 // src/workspace-compiler/cli.ts
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  statSync,
-  watch as fsWatch,
-  writeFileSync
-} from "node:fs";
-import { join, relative } from "node:path";
+var import_fs = require("fs");
+var import_path = require("path");
 
 // src/engine/dictionary/types.ts
 var FIX_VERSIONS = ["FIX.4.2", "FIX.4.4", "FIX.5.0SP2"];
@@ -34486,6 +34479,7 @@ function validateProfile(raw) {
       });
     });
     systems.forEach((s, i) => {
+      var _a;
       const path = `/systems/${i}`;
       if (s.extends) {
         const parent = systems.find((p) => p.id === s.extends);
@@ -34494,7 +34488,7 @@ function validateProfile(raw) {
           warn(path + "/extends", `extends chain deeper than one level (via '${parent.id}')`);
         if (s.extends === s.id) warn(path + "/extends", "system extends itself");
       }
-      for (const ref of s.fragments ?? []) {
+      for (const ref of (_a = s.fragments) != null ? _a : []) {
         if (!fragments[ref]) warn(path + "/fragments", `unknown fragment '${ref}'`);
       }
       if (s.finalFragment && !fragments[s.finalFragment]) {
@@ -34510,6 +34504,7 @@ function validateProfile(raw) {
     error("/dimensions", "dimensions must be an array");
   } else if (Array.isArray(raw.dimensions)) {
     raw.dimensions.forEach((d, i) => {
+      var _a;
       const path = `/dimensions/${i}`;
       if (!isRecord(d) || typeof d.id !== "string") {
         error(path, "dimension must be an object with an id");
@@ -34528,7 +34523,7 @@ function validateProfile(raw) {
           warn(`${path}/options/${j}/convention`, `unknown convention '${o.convention}'`);
         }
       });
-      if (((options == null ? void 0 : options.filter((o) => o.default).length) ?? 0) > 1) {
+      if (((_a = options == null ? void 0 : options.filter((o) => o.default).length) != null ? _a : 0) > 1) {
         warn(`${path}/options`, `dimension '${d.id}' marks more than one option as default`);
       }
       dimensions.push({
@@ -34738,14 +34733,15 @@ function parseInstrumentDbJson(text) {
         issues.push({ severity: "error", path, message: "strategy needs a key and legs array" });
         return;
       }
-      const legs = s.legs.flatMap((leg, j) => {
+      const legs = [];
+      s.legs.forEach((leg, j) => {
         if (!isRecord2(leg) || typeof leg.instrument !== "string") {
           issues.push({
             severity: "error",
             path: `${path}/legs/${j}`,
             message: "leg needs an instrument key"
           });
-          return [];
+          return;
         }
         if (!instruments.has(leg.instrument)) {
           issues.push({
@@ -34755,15 +34751,13 @@ function parseInstrumentDbJson(text) {
           });
         }
         const legExtra = extraKeys(leg, ["instrument", "ratioQty", "side", "price"]);
-        return [
-          {
-            instrument: leg.instrument,
-            ratioQty: typeof leg.ratioQty === "string" ? leg.ratioQty : "1",
-            side: typeof leg.side === "string" ? leg.side : "1",
-            ...typeof leg.price === "string" ? { price: leg.price } : {},
-            ...legExtra ? { extra: legExtra } : {}
-          }
-        ];
+        legs.push({
+          instrument: leg.instrument,
+          ratioQty: typeof leg.ratioQty === "string" ? leg.ratioQty : "1",
+          side: typeof leg.side === "string" ? leg.side : "1",
+          ...typeof leg.price === "string" ? { price: leg.price } : {},
+          ...legExtra ? { extra: legExtra } : {}
+        });
       });
       const strategyExtra = extraKeys(s, [
         "key",
@@ -34805,8 +34799,9 @@ function parseInstrumentDbCsv(text) {
   rows.slice(1).forEach((row, i) => {
     const path = `/row/${i + 2}`;
     const get = (col) => {
+      var _a;
       const idx = header.indexOf(col);
-      return idx >= 0 ? row[idx] ?? "" : "";
+      return idx >= 0 ? (_a = row[idx]) != null ? _a : "" : "";
     };
     const key = get("key");
     if (!key) {
@@ -34817,7 +34812,8 @@ function parseInstrumentDbCsv(text) {
     const attrs = {};
     const extra = {};
     header.forEach((col, c) => {
-      const value = row[c] ?? "";
+      var _a;
+      const value = (_a = row[c]) != null ? _a : "";
       if (value === "") return;
       if (col.startsWith("scheme:")) schemes[col.slice(7)] = value;
       else if (col.startsWith("attr:")) attrs[col.slice(5)] = value;
@@ -34853,7 +34849,16 @@ function sortValue(value) {
     const entries = Object.entries(value).sort(
       ([a], [b]) => a < b ? -1 : a > b ? 1 : 0
     );
-    return Object.fromEntries(entries.map(([k, v]) => [k, sortValue(v)]));
+    const out = {};
+    for (const [k, v] of entries) {
+      Object.defineProperty(out, k, {
+        value: sortValue(v),
+        enumerable: true,
+        writable: true,
+        configurable: true
+      });
+    }
+    return out;
   }
   return value;
 }
@@ -34868,9 +34873,17 @@ function isRecord3(v) {
 function stripComments(value) {
   if (Array.isArray(value)) return value.map(stripComments);
   if (isRecord3(value)) {
-    return Object.fromEntries(
-      Object.entries(value).filter(([k]) => !k.startsWith("//")).map(([k, v]) => [k, stripComments(v)])
-    );
+    const out = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (k.startsWith("//")) continue;
+      Object.defineProperty(out, k, {
+        value: stripComments(v),
+        enumerable: true,
+        writable: true,
+        configurable: true
+      });
+    }
+    return out;
   }
   return value;
 }
@@ -34959,6 +34972,7 @@ function clientOps(client, file, path, ctx) {
   return ops;
 }
 function flowFragmentOps(raw, path, ctx, onParamTuple) {
+  var _a, _b;
   const ops = [];
   if (isRecord3(raw.fields)) {
     ops.push(...opsFromTagValues(raw.fields, path, "/fields", ctx));
@@ -34979,9 +34993,9 @@ function flowFragmentOps(raw, path, ctx, onParamTuple) {
         const slot = { tag: Number(tag), ...p.slot };
         if (isRecord3(p.enum) && type !== "BOOLEAN" && slot.type === void 0) {
           slot.type = "enum";
-          slot.enumSource ?? (slot.enumSource = { kind: "dictionary" });
+          (_a = slot.enumSource) != null ? _a : slot.enumSource = { kind: "dictionary" };
         }
-        slot.type ?? (slot.type = "string");
+        (_b = slot.type) != null ? _b : slot.type = "string";
         ops.push({ op: "slot", tag: Number(tag), slot });
       } else if (typeof p.value === "string") {
         ops.push({ op: "set", tag: Number(tag), value: p.value });
@@ -35112,7 +35126,7 @@ function applyMergePatch(target, patch, prefix, touched) {
   return out;
 }
 function compileWorkspace(files) {
-  var _a, _b;
+  var _a, _b, _c, _d, _e;
   const ctx = makeCtx();
   const empty = {
     issues: ctx.issues,
@@ -35362,7 +35376,7 @@ function compileWorkspace(files) {
   }
   dimensions.push({ id: "instrument", label: "Instrument", kind: "instrument" });
   for (const dim of dimensions) {
-    const defs = (dim.options ?? []).filter((o) => o.default === true);
+    const defs = ((_a = dim.options) != null ? _a : []).filter((o) => o.default === true);
     if (defs.length > 1) {
       ctx.error(
         "",
@@ -35418,7 +35432,7 @@ function compileWorkspace(files) {
       }
       for (const record of db ? [...db.instruments.values()] : []) {
         instruments.push({ ...record });
-        instrumentSource[_a = record.key] ?? (instrumentSource[_a] = path);
+        (_c = instrumentSource[_b = record.key]) != null ? _c : instrumentSource[_b] = path;
       }
       continue;
     }
@@ -35443,7 +35457,7 @@ function compileWorkspace(files) {
             `duplicate instrument key '${record.key}' (also in ${instrumentSource[record.key]})`
           );
         }
-        instrumentSource[_b = record.key] ?? (instrumentSource[_b] = path);
+        (_e = instrumentSource[_d = record.key]) != null ? _e : instrumentSource[_d] = path;
       }
     }
     for (const record of Array.isArray(raw.strategies) ? raw.strategies : []) {
@@ -35532,6 +35546,7 @@ function defaultSelections(profile) {
   return selections;
 }
 function resolveSystemDef(profile, systemId) {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n;
   const system = profile.systems.find((s) => s.id === systemId);
   if (!system) return void 0;
   if (!system.extends) return system;
@@ -35542,13 +35557,13 @@ function resolveSystemDef(profile, systemId) {
   return {
     id: system.id,
     label: system.label,
-    ...system.fragments ?? parent.fragments ? { fragments: system.fragments ?? parent.fragments } : {},
-    ...(system.finalFragment ?? parent.finalFragment) !== void 0 ? { finalFragment: system.finalFragment ?? parent.finalFragment } : {},
-    ...(system.dictionaryOverlay ?? parent.dictionaryOverlay) !== void 0 ? { dictionaryOverlay: system.dictionaryOverlay ?? parent.dictionaryOverlay } : {},
-    ...(system.capabilities ?? parent.capabilities) !== void 0 ? { capabilities: system.capabilities ?? parent.capabilities } : {},
-    ...(system.convention ?? parent.convention) !== void 0 ? { convention: system.convention ?? parent.convention } : {},
-    ...(system.validationPolicy ?? parent.validationPolicy) !== void 0 ? { validationPolicy: system.validationPolicy ?? parent.validationPolicy } : {},
-    ...(system.transportHints ?? parent.transportHints) !== void 0 ? { transportHints: system.transportHints ?? parent.transportHints } : {}
+    ...((_a = system.fragments) != null ? _a : parent.fragments) ? { fragments: (_b = system.fragments) != null ? _b : parent.fragments } : {},
+    ...((_c = system.finalFragment) != null ? _c : parent.finalFragment) !== void 0 ? { finalFragment: (_d = system.finalFragment) != null ? _d : parent.finalFragment } : {},
+    ...((_e = system.dictionaryOverlay) != null ? _e : parent.dictionaryOverlay) !== void 0 ? { dictionaryOverlay: (_f = system.dictionaryOverlay) != null ? _f : parent.dictionaryOverlay } : {},
+    ...((_g = system.capabilities) != null ? _g : parent.capabilities) !== void 0 ? { capabilities: (_h = system.capabilities) != null ? _h : parent.capabilities } : {},
+    ...((_i = system.convention) != null ? _i : parent.convention) !== void 0 ? { convention: (_j = system.convention) != null ? _j : parent.convention } : {},
+    ...((_k = system.validationPolicy) != null ? _k : parent.validationPolicy) !== void 0 ? { validationPolicy: (_l = system.validationPolicy) != null ? _l : parent.validationPolicy } : {},
+    ...((_m = system.transportHints) != null ? _m : parent.transportHints) !== void 0 ? { transportHints: (_n = system.transportHints) != null ? _n : parent.transportHints } : {}
   };
 }
 function isAvailable(availableOn, systemId, capabilities) {
@@ -35561,11 +35576,15 @@ function isAvailable(availableOn, systemId, capabilities) {
 // src/workspace-compiler/report.ts
 function schemesIn(source) {
   if ("scheme" in source) return [source.scheme];
-  if ("firstOf" in source) return source.firstOf.flatMap(schemesIn);
+  if ("firstOf" in source) {
+    const out = [];
+    for (const s of source.firstOf) out.push(...schemesIn(s));
+    return out;
+  }
   return [];
 }
 function lintWorkspace(_compiled, profile, db) {
-  var _a;
+  var _a, _b, _c, _d, _e, _f;
   const issues = [];
   if (!profile) return issues;
   const warn = (file, path, message) => issues.push({ severity: "warning", file, path, message });
@@ -35575,11 +35594,11 @@ function lintWorkspace(_compiled, profile, db) {
     if (resolved == null ? void 0 : resolved.convention) used.add(resolved.convention);
   }
   for (const dimension of profile.dimensions) {
-    for (const option of dimension.options ?? []) {
+    for (const option of (_a = dimension.options) != null ? _a : []) {
       if (option.convention) used.add(option.convention);
     }
   }
-  for (const name of Object.keys(profile.conventions ?? {})) {
+  for (const name of Object.keys((_b = profile.conventions) != null ? _b : {})) {
     if (!used.has(name)) {
       warn(
         `conventions/${name}.json`,
@@ -35591,15 +35610,15 @@ function lintWorkspace(_compiled, profile, db) {
   const referenced = /* @__PURE__ */ new Set();
   for (const system of profile.systems) {
     const resolved = resolveSystemDef(profile, system.id);
-    for (const ref of (resolved == null ? void 0 : resolved.fragments) ?? []) referenced.add(ref);
+    for (const ref of (_c = resolved == null ? void 0 : resolved.fragments) != null ? _c : []) referenced.add(ref);
     if (resolved == null ? void 0 : resolved.finalFragment) referenced.add(resolved.finalFragment);
   }
   for (const dimension of profile.dimensions) {
-    for (const option of dimension.options ?? []) {
+    for (const option of (_d = dimension.options) != null ? _d : []) {
       if (option.fragment) referenced.add(option.fragment);
     }
   }
-  for (const ref of Object.values(profile.templates ?? {})) referenced.add(ref);
+  for (const ref of Object.values((_e = profile.templates) != null ? _e : {})) referenced.add(ref);
   for (const id of Object.keys(profile.fragments)) {
     if (!referenced.has(id)) {
       warn("", `/fragments/${id}`, `fragment '${id}' is never referenced`);
@@ -35607,13 +35626,14 @@ function lintWorkspace(_compiled, profile, db) {
   }
   if (db) {
     for (const name of used) {
-      const convention = (_a = profile.conventions) == null ? void 0 : _a[name];
+      const convention = (_f = profile.conventions) == null ? void 0 : _f[name];
       if (!convention) continue;
-      const requiredSchemes = new Set(
-        convention.variants.flatMap(
-          (v) => v.emit.filter((e) => e.required).flatMap((e) => schemesIn(e.from))
-        )
-      );
+      const requiredSchemes = /* @__PURE__ */ new Set();
+      for (const v of convention.variants) {
+        for (const e of v.emit) {
+          if (e.required) for (const s of schemesIn(e.from)) requiredSchemes.add(s);
+        }
+      }
       for (const scheme of requiredSchemes) {
         const missing = [...db.instruments.values()].filter((r) => {
           var _a2;
@@ -35642,7 +35662,7 @@ ${body}
 `;
 }
 function buildReport(compiled, lint) {
-  var _a, _b, _c;
+  var _a, _b, _c, _d, _e, _f, _g;
   const profile = compiled.profileText ? parseProfile(compiled.profileText).profile : void 0;
   const db = compiled.instrumentsText ? parseInstrumentDb(compiled.instrumentsText).db : void 0;
   const lines = [];
@@ -35653,7 +35673,7 @@ function buildReport(compiled, lint) {
     lines.push("**Build failed** \u2014 see the issues below.");
   } else {
     lines.push(
-      `**${profile.name}** v${profile.version} \xB7 ${profile.fixVersion} \xB7 ${profile.systems.length} link(s) \xB7 ${((_b = (_a = profile.dimensions.find((d) => d.id === "flow")) == null ? void 0 : _a.options) == null ? void 0 : _b.length) ?? 0} flow(s) \xB7 ${db ? `${db.instruments.size} instrument(s), ${db.strategies.size} strategy(ies)` : "no instrument DB"}`
+      `**${profile.name}** v${profile.version} \xB7 ${profile.fixVersion} \xB7 ${profile.systems.length} link(s) \xB7 ${(_c = (_b = (_a = profile.dimensions.find((d) => d.id === "flow")) == null ? void 0 : _a.options) == null ? void 0 : _b.length) != null ? _c : 0} flow(s) \xB7 ${db ? `${db.instruments.size} instrument(s), ${db.strategies.size} strategy(ies)` : "no instrument DB"}`
     );
   }
   lines.push("");
@@ -35663,7 +35683,7 @@ function buildReport(compiled, lint) {
   lines.push(
     matrix("flow", flowRows, links, (flow, link) => {
       const enabled = compiled.flowLinks.get(flow);
-      return enabled === "*" || (enabled ?? []).includes(link);
+      return enabled === "*" || (enabled != null ? enabled : []).includes(link);
     })
   );
   if (compiled.clientLinks.size > 0) {
@@ -35674,7 +35694,10 @@ function buildReport(compiled, lint) {
         "client",
         [...compiled.clientLinks.keys()].sort(),
         links,
-        (client, link) => (compiled.clientLinks.get(client) ?? []).includes(link)
+        (client, link) => {
+          var _a2;
+          return ((_a2 = compiled.clientLinks.get(client)) != null ? _a2 : []).includes(link);
+        }
       )
     );
   }
@@ -35686,7 +35709,10 @@ function buildReport(compiled, lint) {
         "route",
         [...compiled.routeLinks.keys()].sort(),
         links,
-        (route, link) => (compiled.routeLinks.get(route) ?? []).includes(link)
+        (route, link) => {
+          var _a2;
+          return ((_a2 = compiled.routeLinks.get(route)) != null ? _a2 : []).includes(link);
+        }
       )
     );
   }
@@ -35695,10 +35721,10 @@ function buildReport(compiled, lint) {
     lines.push("");
     for (const system of [...profile.systems].sort((a, b) => a.id < b.id ? -1 : 1)) {
       const resolved = resolveSystemDef(profile, system.id);
-      const finalOps = resolved.finalFragment ? ((_c = profile.fragments[resolved.finalFragment]) == null ? void 0 : _c.ops) ?? [] : [];
+      const finalOps = resolved.finalFragment ? (_e = (_d = profile.fragments[resolved.finalFragment]) == null ? void 0 : _d.ops) != null ? _e : [] : [];
       const enforced = finalOps.filter((o) => o.op === "set").map((o) => `${o.tag}=${o.value}`).join(", ");
       lines.push(
-        `- **${resolved.label}** (\`${system.id}\`, from \`links/${system.id}.json\`) \u2014 convention: ${resolved.convention ?? "none"}; capabilities: ${(resolved.capabilities ?? []).join(", ") || "none"}; enforced: ${enforced || "none"}`
+        `- **${resolved.label}** (\`${system.id}\`, from \`links/${system.id}.json\`) \u2014 convention: ${(_f = resolved.convention) != null ? _f : "none"}; capabilities: ${((_g = resolved.capabilities) != null ? _g : []).join(", ") || "none"}; enforced: ${enforced || "none"}`
       );
     }
     lines.push("");
@@ -35731,10 +35757,9 @@ function buildReport(compiled, lint) {
 var DictionaryFormatError = class extends Error {
   constructor(message, path) {
     super(`${path}: ${message}`);
-    this.path = path;
+    __publicField(this, "path", path);
     this.name = "DictionaryFormatError";
   }
-  path;
 };
 function convertLayoutItem(item, path) {
   if (Array.isArray(item)) {
@@ -35837,7 +35862,7 @@ function applyRequiredFlips(items, flips) {
       const flip = flips[String(item.countTag)];
       return {
         ...item,
-        required: flip ?? item.required,
+        required: flip != null ? flip : item.required,
         items: applyRequiredFlips(item.items, flips)
       };
     }
@@ -35845,9 +35870,10 @@ function applyRequiredFlips(items, flips) {
   });
 }
 function applyOverlay(dict, overlay) {
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
   if (!overlay) return dict;
   const fields = new Map(dict.fields);
-  for (const [tagStr, def] of Object.entries(overlay.fields ?? {})) {
+  for (const [tagStr, def] of Object.entries((_a = overlay.fields) != null ? _a : {})) {
     const tag = Number(tagStr);
     const existing = fields.get(tag);
     if (isTupleFieldDef(def)) {
@@ -35861,12 +35887,12 @@ function applyOverlay(dict, overlay) {
     } else {
       const merged = {
         tag,
-        name: def.name ?? (existing == null ? void 0 : existing.name) ?? `Tag${tag}`,
-        type: def.type ?? (existing == null ? void 0 : existing.type) ?? "STRING",
+        name: (_c = (_b = def.name) != null ? _b : existing == null ? void 0 : existing.name) != null ? _c : `Tag${tag}`,
+        type: (_e = (_d = def.type) != null ? _d : existing == null ? void 0 : existing.type) != null ? _e : "STRING",
         ...def.enums || (existing == null ? void 0 : existing.enums) ? {
           enums: new Map([
-            ...def.enumMode === "replace" ? [] : (existing == null ? void 0 : existing.enums) ?? /* @__PURE__ */ new Map(),
-            ...Object.entries(def.enums ?? {})
+            ...def.enumMode === "replace" ? [] : (_f = existing == null ? void 0 : existing.enums) != null ? _f : /* @__PURE__ */ new Map(),
+            ...Object.entries((_g = def.enums) != null ? _g : {})
           ])
         } : {}
       };
@@ -35874,19 +35900,19 @@ function applyOverlay(dict, overlay) {
     }
   }
   const components = new Map(dict.components);
-  for (const [name, items] of Object.entries(overlay.components ?? {})) {
+  for (const [name, items] of Object.entries((_h = overlay.components) != null ? _h : {})) {
     components.set(name, convertItems(items, `/components/${name}`));
   }
   const messages = new Map(dict.messages);
-  for (const [msgType, msgOverlay] of Object.entries(overlay.messages ?? {})) {
+  for (const [msgType, msgOverlay] of Object.entries((_i = overlay.messages) != null ? _i : {})) {
     const existing = messages.get(msgType);
-    let items = msgOverlay.items !== void 0 ? convertItems(msgOverlay.items, `/messages/${msgType}/items`) : (existing == null ? void 0 : existing.items) ?? [];
+    let items = msgOverlay.items !== void 0 ? convertItems(msgOverlay.items, `/messages/${msgType}/items`) : (_j = existing == null ? void 0 : existing.items) != null ? _j : [];
     if (msgOverlay.required) {
       items = applyRequiredFlips(items, msgOverlay.required);
     }
     const def = {
       msgType,
-      name: msgOverlay.name ?? (existing == null ? void 0 : existing.name) ?? msgType,
+      name: (_l = (_k = msgOverlay.name) != null ? _k : existing == null ? void 0 : existing.name) != null ? _l : msgType,
       ...(existing == null ? void 0 : existing.category) ? { category: existing.category } : {},
       items
     };
@@ -35900,12 +35926,13 @@ function effectiveDictionary(base, profileOverlay, systemOverlay) {
 
 // src/engine/profile/resolve.ts
 function resolveForSystem(profile, systemId, baseDictionary) {
+  var _a, _b;
   const system = resolveSystemDef(profile, systemId);
   if (!system) return void 0;
-  const capabilities = new Set(system.capabilities ?? []);
+  const capabilities = new Set((_a = system.capabilities) != null ? _a : []);
   const fragmentById = (id) => profile.fragments[id];
   const systemFragments = [];
-  for (const ref of system.fragments ?? []) {
+  for (const ref of (_b = system.fragments) != null ? _b : []) {
     const fragment = fragmentById(ref);
     if (fragment) systemFragments.push({ fragment, stage: "system" });
   }
@@ -35938,8 +35965,8 @@ var cache = /* @__PURE__ */ new Map();
 async function loadBaseDictionary(version) {
   const cached = cache.get(version);
   if (cached) return cached;
-  const module = await loaders[version]();
-  const dict = dictionaryFromJson(module.default, version);
+  const module2 = await loaders[version]();
+  const dict = dictionaryFromJson(module2.default, version);
   cache.set(version, dict);
   return dict;
 }
@@ -36070,9 +36097,12 @@ function applyOps(fields, ops, source, ctx, notices, slots, pathPrefix) {
 }
 function mergeFragments(stack, ctx) {
   const stageIndex = new Map(MERGE_STAGES.map((s, i) => [s, i]));
-  const ordered = [...stack].sort(
-    (a, b) => (stageIndex.get(a.stage) ?? 0) - (stageIndex.get(b.stage) ?? 0)
-  );
+  const ordered = stack.map((entry, i) => ({ entry, i })).sort(
+    (a, b) => {
+      var _a, _b;
+      return ((_a = stageIndex.get(a.entry.stage)) != null ? _a : 0) - ((_b = stageIndex.get(b.entry.stage)) != null ? _b : 0) || a.i - b.i;
+    }
+  ).map((x) => x.entry);
   const fields = [];
   const notices = [];
   const slots = /* @__PURE__ */ new Map();
@@ -36095,17 +36125,21 @@ function memoryCounterStore(seed) {
   const counters = new Map(seed);
   return {
     next(key, start) {
-      const value = counters.get(key) ?? start;
+      var _a;
+      const value = (_a = counters.get(key)) != null ? _a : start;
       counters.set(key, value + 1);
       return value;
     }
   };
 }
 var BatchScope = class {
-  sharedValues = /* @__PURE__ */ new Map();
-  counters = /* @__PURE__ */ new Map();
+  constructor() {
+    __publicField(this, "sharedValues", /* @__PURE__ */ new Map());
+    __publicField(this, "counters", /* @__PURE__ */ new Map());
+  }
   nextCounter(key, start) {
-    const value = this.counters.get(key) ?? start;
+    var _a;
+    const value = (_a = this.counters.get(key)) != null ? _a : start;
     this.counters.set(key, value + 1);
     return value;
   }
@@ -36153,16 +36187,17 @@ function interpolateTemplate(template, templateKey, ctx) {
   });
 }
 function evaluateGenerator(defs, ref, ctx, seen = []) {
+  var _a, _b, _c;
   const def = defs.get(ref);
   if (!def || seen.includes(ref)) {
     return `{${ref}?}`;
   }
   switch (def.kind) {
     case "sequence": {
-      const start = def.start ?? 1;
+      const start = (_a = def.start) != null ? _a : 1;
       let value;
       if (def.scope === "message") {
-        value = ctx.message.get(ref) ?? start;
+        value = (_b = ctx.message.get(ref)) != null ? _b : start;
         ctx.message.set(ref, value + 1);
       } else if (def.scope === "batch") {
         value = ctx.batch.nextCounter(`seq:${ref}`, start);
@@ -36183,7 +36218,7 @@ function evaluateGenerator(defs, ref, ctx, seen = []) {
       return value;
     }
     case "random":
-      return def.style === "uuid" ? randomUuid(ctx.random) : randomHex(ctx.random, def.length ?? 8);
+      return def.style === "uuid" ? randomUuid(ctx.random) : randomHex(ctx.random, (_c = def.length) != null ? _c : 8);
   }
 }
 function mulberry32(seed) {
@@ -36270,14 +36305,16 @@ function resolveSelections(resolved, selections) {
 var USER_SOURCE = { id: "user", label: "User input" };
 var DEFAULT_SOURCE = { id: "slot-default", label: "Slot default" };
 function generatorDefs(resolved) {
-  return new Map(Object.entries(resolved.profile.generators ?? {}));
+  var _a;
+  return new Map(Object.entries((_a = resolved.profile.generators) != null ? _a : {}));
 }
 function buildSingle(resolved, input, env, batch) {
+  var _a, _b;
   const { stack, msgType, mode, findings } = resolveSelections(resolved, input.selections);
   if (input.instrumentFragment) {
     stack.push({ fragment: input.instrumentFragment, stage: "instrument" });
   }
-  for (const fragment of input.extraFragments ?? []) {
+  for (const fragment of (_a = input.extraFragments) != null ? _a : []) {
     stack.push({ fragment, stage: "extra" });
   }
   if (resolved.finalFragment) stack.push(resolved.finalFragment);
@@ -36290,18 +36327,19 @@ function buildSingle(resolved, input, env, batch) {
     label: USER_SOURCE.label,
     ops: [...userValues.entries()].map(([tag, value]) => ({ op: "set", tag, value }))
   };
+  const defaultOps = [];
+  for (const s of discovery.slots) {
+    if (userValues.has(s.spec.tag)) continue;
+    if (s.spec.generatorDefault !== void 0) {
+      defaultOps.push({ op: "setGenerated", tag: s.spec.tag, generator: s.spec.generatorDefault });
+    } else if (s.spec.default !== void 0) {
+      defaultOps.push({ op: "set", tag: s.spec.tag, value: s.spec.default });
+    }
+  }
   const defaultsFragment = {
     id: DEFAULT_SOURCE.id,
     label: DEFAULT_SOURCE.label,
-    ops: discovery.slots.filter((s) => !userValues.has(s.spec.tag)).flatMap((s) => {
-      if (s.spec.generatorDefault !== void 0) {
-        return [{ op: "setGenerated", tag: s.spec.tag, generator: s.spec.generatorDefault }];
-      }
-      if (s.spec.default !== void 0) {
-        return [{ op: "set", tag: s.spec.tag, value: s.spec.default }];
-      }
-      return [];
-    })
+    ops: defaultOps
   };
   const fullStack = [
     ...stack,
@@ -36313,13 +36351,13 @@ function buildSingle(resolved, input, env, batch) {
     clock: env.clock,
     random: env.random,
     counters: env.counters,
-    batch: batch ?? new BatchScope(),
+    batch: batch != null ? batch : new BatchScope(),
     message: /* @__PURE__ */ new Map()
   };
   const merged = mergeFragments(fullStack, {
     evaluateGenerator: (ref) => evaluateGenerator(defs, ref, ctx)
   });
-  const fixVersion = input.fixVersion ?? resolved.profile.fixVersion;
+  const fixVersion = (_b = input.fixVersion) != null ? _b : resolved.profile.fixVersion;
   return {
     message: {
       beginString: beginStringFor(fixVersion),
@@ -36355,7 +36393,7 @@ function resolveSource(source, record) {
 function variantMatches(variant, record, fixVersion) {
   var _a, _b, _c;
   const securityType = (_a = record.attrs) == null ? void 0 : _a.securityType;
-  if (((_b = variant.when) == null ? void 0 : _b.securityType) && !variant.when.securityType.includes(securityType ?? "")) {
+  if (((_b = variant.when) == null ? void 0 : _b.securityType) && !variant.when.securityType.includes(securityType != null ? securityType : "")) {
     return false;
   }
   if (((_c = variant.when) == null ? void 0 : _c.fixVersion) && !variant.when.fixVersion.includes(fixVersion)) {
@@ -36364,6 +36402,7 @@ function variantMatches(variant, record, fixVersion) {
   return true;
 }
 function resolveIdentity(record, convention, fixVersion) {
+  var _a, _b;
   const variant = convention.variants.find((v) => variantMatches(v, record, fixVersion));
   if (!variant) {
     return { values: /* @__PURE__ */ new Map(), altIds: [], missing: [] };
@@ -36377,13 +36416,13 @@ function resolveIdentity(record, convention, fixVersion) {
     } else {
       missing.push({
         role: emit.role,
-        required: emit.required ?? false,
+        required: (_a = emit.required) != null ? _a : false,
         source: describeSource(emit.from)
       });
     }
   }
   const altIds = [];
-  for (const alt of variant.altIds ?? []) {
+  for (const alt of (_b = variant.altIds) != null ? _b : []) {
     const value = resolveSource(alt.from, record);
     if (value !== void 0) {
       altIds.push({ id: value, sourceCode: alt.sourceCode });
@@ -36478,20 +36517,24 @@ function placeIdentity(record, convention, context, fixVersion) {
       ])
     });
   }
-  const findings = identity.missing.map((m) => ({
-    ruleId: "instrument-missing-identifier",
-    severity: m.required ? "warning" : "info",
-    path: "",
-    message: `${record.name ?? record.key}: no value for ${m.role} (${m.source})${m.required ? " \u2014 required by the convention" : ""}`
-  }));
+  const findings = identity.missing.map((m) => {
+    var _a;
+    return {
+      ruleId: "instrument-missing-identifier",
+      severity: m.required ? "warning" : "info",
+      path: "",
+      message: `${(_a = record.name) != null ? _a : record.key}: no value for ${m.role} (${m.source})${m.required ? " \u2014 required by the convention" : ""}`
+    };
+  });
   return { ops, findings };
 }
 function instrumentFragment(record, convention, context, fixVersion, conventionNote) {
+  var _a;
   const placed = placeIdentity(record, convention, context, fixVersion);
   return {
     fragment: {
       id: `instrument:${record.key}`,
-      label: `Instrument: ${record.name ?? record.key}${conventionNote ? ` \xB7 convention via ${conventionNote}` : ""}`,
+      label: `Instrument: ${(_a = record.name) != null ? _a : record.key}${conventionNote ? ` \xB7 convention via ${conventionNote}` : ""}`,
       ops: placed.ops
     },
     findings: placed.findings
@@ -36539,9 +36582,26 @@ function collectTags(items) {
 
 // src/engine/render/checksum.ts
 var SOH = "";
-var encoder = new TextEncoder();
 function encodeBytes(s) {
-  return encoder.encode(s);
+  const out = [];
+  for (let i = 0; i < s.length; i++) {
+    let cp = s.codePointAt(i);
+    if (cp > 65535) i++;
+    if (cp < 128) out.push(cp);
+    else if (cp < 2048) out.push(192 | cp >> 6, 128 | cp & 63);
+    else if (cp < 65536) {
+      if (cp >= 55296 && cp <= 57343) cp = 65533;
+      out.push(224 | cp >> 12, 128 | cp >> 6 & 63, 128 | cp & 63);
+    } else {
+      out.push(
+        240 | cp >> 18,
+        128 | cp >> 12 & 63,
+        128 | cp >> 6 & 63,
+        128 | cp & 63
+      );
+    }
+  }
+  return Uint8Array.from(out);
 }
 function byteLength(segment) {
   return encodeBytes(segment).length;
@@ -36608,9 +36668,10 @@ function orderForWire(msg, dict) {
   return { header, body: pool, trailer, explicit };
 }
 function renderTagValue(msg, dict, options) {
+  var _a, _b;
   const { header, body, trailer, explicit } = orderForWire(msg, dict);
-  const beginString = explicit.get(8) ?? msg.beginString;
-  const msgType = explicit.get(35) ?? msg.msgType;
+  const beginString = (_a = explicit.get(8)) != null ? _a : msg.beginString;
+  const msgType = (_b = explicit.get(35)) != null ? _b : msg.msgType;
   const explicitLength = explicit.get(9);
   const explicitChecksum = explicit.get(10);
   const afterLength = [
@@ -36621,12 +36682,12 @@ function renderTagValue(msg, dict, options) {
   ].map((f) => f + SOH).join("");
   const parts = [`8=${beginString}${SOH}`];
   if (!options.omitLengthAndChecksum) {
-    const bodyLength = explicitLength ?? String(byteLength(afterLength));
+    const bodyLength = explicitLength != null ? explicitLength : String(byteLength(afterLength));
     parts.push(`9=${bodyLength}${SOH}`);
   }
   parts.push(afterLength);
   if (!options.omitLengthAndChecksum) {
-    const sum = explicitChecksum ?? checkSum(parts.join(""));
+    const sum = explicitChecksum != null ? explicitChecksum : checkSum(parts.join(""));
     parts.push(`10=${sum}${SOH}`);
   }
   const wire = parts.join("");
@@ -36638,7 +36699,7 @@ function renderTagValue(msg, dict, options) {
 var PINNED_CLOCK = /* @__PURE__ */ new Date("2026-01-01T00:00:00.000Z");
 var PINNED_SEED = 1;
 async function generateGoldens(profileText, instrumentsText) {
-  var _a;
+  var _a, _b, _c;
   const goldens = /* @__PURE__ */ new Map();
   const { profile } = parseProfile(profileText);
   if (!profile) return goldens;
@@ -36655,14 +36716,14 @@ async function generateGoldens(profileText, instrumentsText) {
   for (const system of [...profile.systems].sort((a, b) => a.id < b.id ? -1 : 1)) {
     const resolved = resolveForSystem(profile, system.id, dictionary);
     if (!resolved) continue;
-    for (const option of (flowDim == null ? void 0 : flowDim.options) ?? []) {
+    for (const option of (_a = flowDim == null ? void 0 : flowDim.options) != null ? _a : []) {
       const selections = {
         ...defaultSelections(profile),
         ...flowDim ? { [flowDim.id]: option.id } : {}
       };
       const info = resolveSelections(resolved, selections);
-      const conventionRef = info.convention ?? resolved.system.convention;
-      const convention = conventionRef ? (_a = profile.conventions) == null ? void 0 : _a[conventionRef] : void 0;
+      const conventionRef = (_b = info.convention) != null ? _b : resolved.system.convention;
+      const convention = conventionRef ? (_c = profile.conventions) == null ? void 0 : _c[conventionRef] : void 0;
       const record = instrumentDim && firstInstrument ? db == null ? void 0 : db.instruments.get(firstInstrument) : void 0;
       const placed = record && convention ? instrumentFragment(record, convention, "instrument", profile.fixVersion) : void 0;
       const result = buildSingle(
@@ -36743,7 +36804,7 @@ function clientConfigFrom(ops) {
 var CLIENTISH_DIMS = /* @__PURE__ */ new Set(["client", "clients"]);
 var ROUTISH_DIMS = /* @__PURE__ */ new Set(["route", "routes", "routing"]);
 function explodeProfile(profileTextIn, instrumentsTextIn) {
-  var _a, _b, _c, _d;
+  var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o;
   const files = /* @__PURE__ */ new Map();
   const notes = [];
   const note = (message) => notes.push({ severity: "warning", file: "", path: "", message });
@@ -36767,7 +36828,7 @@ function explodeProfile(profileTextIn, instrumentsTextIn) {
   }
   const consumedFragments = /* @__PURE__ */ new Set();
   const consumedOverlayTags = /* @__PURE__ */ new Set();
-  const rawOverlayFields = ((_a = profile.dictionaryOverlay) == null ? void 0 : _a.fields) ?? {};
+  const rawOverlayFields = (_b = (_a = profile.dictionaryOverlay) == null ? void 0 : _a.fields) != null ? _b : {};
   const manifest = {
     name: profile.name,
     version: profile.version,
@@ -36775,7 +36836,7 @@ function explodeProfile(profileTextIn, instrumentsTextIn) {
     ...profile.generators ? { generators: profile.generators } : {},
     ...profile.validationPolicy ? { validationPolicy: profile.validationPolicy } : {}
   };
-  const templates = { ...profile.templates ?? {} };
+  const templates = { ...(_c = profile.templates) != null ? _c : {} };
   const templateD = typeof templates.D === "string" ? profile.fragments[templates.D] : void 0;
   if (templateD) {
     const sugar = tagValuesFrom(templateD.ops);
@@ -36803,10 +36864,10 @@ function explodeProfile(profileTextIn, instrumentsTextIn) {
       `dimension(s) ${extraDims.map((d) => `'${d.id}'`).join(", ")} kept verbatim in workspace.json extraDimensions`
     );
     for (const d of extraDims)
-      for (const o of d.options ?? []) if (o.fragment) consumedFragments.add(o.fragment);
+      for (const o of (_d = d.options) != null ? _d : []) if (o.fragment) consumedFragments.add(o.fragment);
   }
-  if (flowDim) manifest.flowOrder = (flowDim.options ?? []).map((o) => o.id);
-  for (const option of (flowDim == null ? void 0 : flowDim.options) ?? []) {
+  if (flowDim) manifest.flowOrder = ((_e = flowDim.options) != null ? _e : []).map((o) => o.id);
+  for (const option of (_f = flowDim == null ? void 0 : flowDim.options) != null ? _f : []) {
     const flow = { label: option.label };
     if (option.msgType && option.msgType !== "D") flow.msgType = option.msgType;
     if (option.modes) flow.modes = option.modes;
@@ -36860,7 +36921,8 @@ function explodeProfile(profileTextIn, instrumentsTextIn) {
   const routeConfigs = /* @__PURE__ */ new Map();
   const optionAvailability = /* @__PURE__ */ new Map();
   const collectOptionDim = (dim, configs, asClient) => {
-    for (const option of (dim == null ? void 0 : dim.options) ?? []) {
+    var _a2;
+    for (const option of (_a2 = dim == null ? void 0 : dim.options) != null ? _a2 : []) {
       const fragment = option.fragment ? profile.fragments[option.fragment] : void 0;
       const config = { label: option.label };
       if (option.default) config.default = true;
@@ -36881,12 +36943,12 @@ function explodeProfile(profileTextIn, instrumentsTextIn) {
   collectOptionDim(routeDim, routeConfigs, false);
   for (const system of profile.systems) {
     const resolved = resolveSystemDef(profile, system.id);
-    const capabilities = new Set(resolved.capabilities ?? []);
+    const capabilities = new Set((_g = resolved.capabilities) != null ? _g : []);
     const link = { label: resolved.label };
     const leftoverFragments = [];
     let sessionDone = false;
     let clientDone = false;
-    for (const ref of resolved.fragments ?? []) {
+    for (const ref of (_h = resolved.fragments) != null ? _h : []) {
       const fragment = profile.fragments[ref];
       if (!fragment) continue;
       const asSession = !sessionDone ? tagValuesFrom(fragment.ops) : void 0;
@@ -36918,7 +36980,7 @@ function explodeProfile(profileTextIn, instrumentsTextIn) {
     if (resolved.transportHints !== void 0) link.transportHints = resolved.transportHints;
     if (resolved.dictionaryOverlay) link.dictionaryOverlay = resolved.dictionaryOverlay;
     if (resolved.validationPolicy) link.validationPolicy = resolved.validationPolicy;
-    const algos = ((flowDim == null ? void 0 : flowDim.options) ?? []).filter((o) => o.availableOn && o.availableOn.length > 0).filter((o) => isAvailable(o.availableOn, system.id, capabilities)).map((o) => o.id);
+    const algos = ((_i = flowDim == null ? void 0 : flowDim.options) != null ? _i : []).filter((o) => o.availableOn && o.availableOn.length > 0).filter((o) => isAvailable(o.availableOn, system.id, capabilities)).map((o) => o.id);
     if (algos.length > 0) link.algos = algos;
     const linkOptions = (dim, configs) => {
       if (!dim) return void 0;
@@ -36943,10 +37005,10 @@ function explodeProfile(profileTextIn, instrumentsTextIn) {
     if (routes) link.routes = routes;
     emit(`links/${system.id}.json`, link);
   }
-  for (const [name, convention] of Object.entries(profile.conventions ?? {})) {
+  for (const [name, convention] of Object.entries((_j = profile.conventions) != null ? _j : {})) {
     emit(`conventions/${name}.json`, convention);
   }
-  for (const [name, mapping] of Object.entries(((_b = profile.renderers) == null ? void 0 : _b.json) ?? {})) {
+  for (const [name, mapping] of Object.entries((_l = (_k = profile.renderers) == null ? void 0 : _k.json) != null ? _l : {})) {
     emit(`mappings/${name}.json`, mapping);
   }
   const leftoverOverlay = {};
@@ -36954,8 +37016,8 @@ function explodeProfile(profileTextIn, instrumentsTextIn) {
     if (!consumedOverlayTags.has(tag)) leftoverOverlay[tag] = def;
   }
   if (Object.keys(leftoverOverlay).length > 0) {
-    manifest.dictionaryOverlay = { ...profile.dictionaryOverlay ?? {}, fields: leftoverOverlay };
-  } else if (((_c = profile.dictionaryOverlay) == null ? void 0 : _c.components) || ((_d = profile.dictionaryOverlay) == null ? void 0 : _d.messages)) {
+    manifest.dictionaryOverlay = { ...(_m = profile.dictionaryOverlay) != null ? _m : {}, fields: leftoverOverlay };
+  } else if (((_n = profile.dictionaryOverlay) == null ? void 0 : _n.components) || ((_o = profile.dictionaryOverlay) == null ? void 0 : _o.messages)) {
     const rest = { ...profile.dictionaryOverlay };
     delete rest.fields;
     manifest.dictionaryOverlay = rest;
@@ -37613,7 +37675,7 @@ function ideaFiles() {
 <project version="4">
   <component name="ProjectTasksOptions">
     <TaskOptions isEnabled="true">
-      <option name="arguments" value="fixb.mjs build $ProjectFileDir$ --out=$ProjectFileDir$/dist-config" />
+      <option name="arguments" value="fixb.cjs build $ProjectFileDir$ --out=$ProjectFileDir$/dist-config" />
       <option name="checkSyntaxErrors" value="true" />
       <option name="description" value="Rebuild the FIX profile on save (see BUILD-REPORT.md)" />
       <option name="exitCodeBehavior" value="ERROR" />
@@ -37668,14 +37730,19 @@ ${mapping("fixb flow", "schemas/flow.schema.json", "flows/*.json")}
 }
 
 // src/workspace-compiler/cli.ts
+function ensureDir(dir) {
+  if ((0, import_fs.existsSync)(dir)) return;
+  ensureDir((0, import_path.join)(dir, ".."));
+  (0, import_fs.mkdirSync)(dir);
+}
 function readWorkspace(dir) {
   const files = /* @__PURE__ */ new Map();
   const walk = (d) => {
-    for (const entry of readdirSync(d)) {
-      const full = join(d, entry);
-      if (statSync(full).isDirectory()) walk(full);
+    for (const entry of (0, import_fs.readdirSync)(d)) {
+      const full = (0, import_path.join)(d, entry);
+      if ((0, import_fs.statSync)(full).isDirectory()) walk(full);
       else if (/\.(json|csv)$/i.test(entry)) {
-        files.set(relative(dir, full).replace(/\\/g, "/"), readFileSync(full, "utf8"));
+        files.set((0, import_path.relative)(dir, full).replace(/\\/g, "/"), (0, import_fs.readFileSync)(full, "utf8"));
       }
     }
   };
@@ -37693,12 +37760,12 @@ function printIssues(issues) {
 function collectOutputs(compiled, report, goldens, outDir) {
   const outputs = [];
   if (compiled.profileText)
-    outputs.push({ path: join(outDir, "work.profile.json"), content: compiled.profileText });
+    outputs.push({ path: (0, import_path.join)(outDir, "work.profile.json"), content: compiled.profileText });
   if (compiled.instrumentsText)
-    outputs.push({ path: join(outDir, "instruments.json"), content: compiled.instrumentsText });
-  outputs.push({ path: join(outDir, "BUILD-REPORT.md"), content: report });
-  for (const [name, wire] of goldens ?? []) {
-    outputs.push({ path: join(outDir, "golden", name), content: wire });
+    outputs.push({ path: (0, import_path.join)(outDir, "instruments.json"), content: compiled.instrumentsText });
+  outputs.push({ path: (0, import_path.join)(outDir, "BUILD-REPORT.md"), content: report });
+  for (const [name, wire] of goldens != null ? goldens : []) {
+    outputs.push({ path: (0, import_path.join)(outDir, "golden", name), content: wire });
   }
   return outputs;
 }
@@ -37719,7 +37786,7 @@ build FAILED with ${errors.length} error(s).`);
   const outputs = collectOutputs(compiled, report, goldens, outDir);
   if (check) {
     const stale = outputs.filter(
-      (o) => !existsSync(o.path) || readFileSync(o.path, "utf8") !== o.content
+      (o) => !(0, import_fs.existsSync)(o.path) || (0, import_fs.readFileSync)(o.path, "utf8") !== o.content
     );
     if (stale.length > 0) {
       console.error(
@@ -37733,18 +37800,19 @@ build FAILED with ${errors.length} error(s).`);
     return 0;
   }
   for (const o of outputs) {
-    mkdirSync(join(o.path, ".."), { recursive: true });
-    writeFileSync(o.path, o.content);
+    if ((0, import_fs.existsSync)(o.path) && (0, import_fs.readFileSync)(o.path, "utf8") === o.content) continue;
+    ensureDir((0, import_path.join)(o.path, ".."));
+    (0, import_fs.writeFileSync)(o.path, o.content);
     console.log(`wrote ${o.path}`);
   }
   console.log(
     `
-build OK (${compiled.issues.length + lint.length} warning(s)) \u2014 see ${join(outDir, "BUILD-REPORT.md")}`
+build OK (${compiled.issues.length + lint.length} warning(s)) \u2014 see ${(0, import_path.join)(outDir, "BUILD-REPORT.md")}`
   );
   return 0;
 }
 function explain(src, entity) {
-  var _a;
+  var _a, _b;
   const compiled = compileWorkspace(readWorkspace(src));
   if (!compiled.profile) {
     printIssues(compiled.issues);
@@ -37759,13 +37827,13 @@ function explain(src, entity) {
       if (fid.startsWith(`link:${id}:`)) chunks[`fragment '${fid}'`] = fragment;
     }
     for (const dimension of profile.dimensions) {
-      const gated = (dimension.options ?? []).filter((o) => JSON.stringify(o).includes(`"${id}"`));
+      const gated = ((_a = dimension.options) != null ? _a : []).filter((o) => JSON.stringify(o).includes(`"${id}"`));
       if (gated.length > 0)
         chunks[`dimension '${dimension.id}' options gated to this link`] = gated;
     }
   } else if (entity.startsWith("flows/")) {
     const flowDim = profile.dimensions.find((d) => d.id === "flow");
-    chunks[`flow option '${id}'`] = (_a = flowDim == null ? void 0 : flowDim.options) == null ? void 0 : _a.find((o) => o.id === id);
+    chunks[`flow option '${id}'`] = (_b = flowDim == null ? void 0 : flowDim.options) == null ? void 0 : _b.find((o) => o.id === id);
     chunks[`fragment 'flow:${id}'`] = profile.fragments[`flow:${id}`];
   } else {
     console.error(`explain supports links/\u2026 and flows/\u2026 entities (got '${entity}')`);
@@ -37780,33 +37848,33 @@ function explain(src, entity) {
 }
 function copySelfInto(dir) {
   const self = process.argv[1];
-  if (!self || !self.endsWith("fixb.mjs")) return;
-  const dest = join(dir, "fixb.mjs");
-  if (existsSync(dest)) return;
-  copyFileSync(self, dest);
+  if (!self || !/fixb\.(cjs|mjs)$/.test(self)) return;
+  const dest = (0, import_path.join)(dir, "fixb.cjs");
+  if ((0, import_fs.existsSync)(dest)) return;
+  (0, import_fs.copyFileSync)(self, dest);
   console.log(`wrote ${dest} (the build tool travels with the workspace)`);
 }
 function writeNew(dir, files) {
   for (const [path, content] of files) {
-    const full = join(dir, path);
-    if (existsSync(full)) {
+    const full = (0, import_path.join)(dir, path);
+    if ((0, import_fs.existsSync)(full)) {
       console.log(`skip  ${full} (exists)`);
       continue;
     }
-    mkdirSync(join(full, ".."), { recursive: true });
-    writeFileSync(full, content);
+    ensureDir((0, import_path.join)(full, ".."));
+    (0, import_fs.writeFileSync)(full, content);
     console.log(`wrote ${full}`);
   }
 }
 function explodeCmd(profilePath, instrumentsPath, outDir, idea) {
-  const profileText = readFileSync(profilePath, "utf8");
-  const instrumentsText = instrumentsPath ? readFileSync(instrumentsPath, "utf8") : void 0;
+  const profileText = (0, import_fs.readFileSync)(profilePath, "utf8");
+  const instrumentsText = instrumentsPath ? (0, import_fs.readFileSync)(instrumentsPath, "utf8") : void 0;
   const { files, notes } = explodeProfile(profileText, instrumentsText);
   printIssues(notes);
   for (const [path, content] of files) {
-    const full = join(outDir, path);
-    mkdirSync(join(full, ".."), { recursive: true });
-    writeFileSync(full, content);
+    const full = (0, import_path.join)(outDir, path);
+    ensureDir((0, import_path.join)(full, ".."));
+    (0, import_fs.writeFileSync)(full, content);
     console.log(`wrote ${full}`);
   }
   writeNew(outDir, new Map([...schemaFiles(), ...idea ? ideaFiles() : []]));
@@ -37837,20 +37905,20 @@ async function watchCmd(src, outDir) {
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => void run(), 250);
   };
-  const dirs = ["", "links", "flows", "conventions", "mappings", "instruments", "fragments"].map((d) => join(src, d)).filter((d) => existsSync(d));
-  for (const dir of dirs) fsWatch(dir, trigger);
+  const dirs = ["", "links", "flows", "conventions", "mappings", "instruments", "fragments"].map((d) => (0, import_path.join)(src, d)).filter((d) => (0, import_fs.existsSync)(d));
+  for (const dir of dirs) (0, import_fs.watch)(dir, trigger);
   await new Promise(() => void 0);
   return 0;
 }
 async function main(argv) {
-  var _a;
+  var _a, _b, _c, _d, _e, _f;
   const args = argv.filter((a) => !a.startsWith("--"));
   const flags = new Set(argv.filter((a) => a.startsWith("--")));
   const outFlag = (_a = argv.find((a) => a.startsWith("--out="))) == null ? void 0 : _a.slice("--out=".length);
   const [command, ...rest] = args;
   switch (command) {
     case "build":
-      return build(rest[0] ?? ".", outFlag ?? rest[0] ?? ".", flags.has("--check"));
+      return build((_b = rest[0]) != null ? _b : ".", (_c = outFlag != null ? outFlag : rest[0]) != null ? _c : ".", flags.has("--check"));
     case "explain": {
       if (!rest[1] && !rest[0]) {
         console.error("usage: fixb explain <src-dir> <entity-file>");
@@ -37864,11 +37932,11 @@ async function main(argv) {
         console.error("usage: fixb explode <profile.json> [instruments.json] [--out=dir] [--idea]");
         return 1;
       }
-      return explodeCmd(rest[0], rest[1], outFlag ?? "profile-src", flags.has("--idea"));
+      return explodeCmd(rest[0], rest[1], outFlag != null ? outFlag : "profile-src", flags.has("--idea"));
     case "init":
-      return initCmd(rest[0] ?? "profile-src", flags.has("--idea"));
+      return initCmd((_d = rest[0]) != null ? _d : "profile-src", flags.has("--idea"));
     case "watch":
-      return watchCmd(rest[0] ?? ".", outFlag ?? rest[0] ?? ".");
+      return watchCmd((_e = rest[0]) != null ? _e : ".", (_f = outFlag != null ? outFlag : rest[0]) != null ? _f : ".");
     default:
       console.error(
         "fixb \u2014 FIX Message Builder profile workspace tool\n\nusage:\n  fixb build   [src] [--out=dir] [--check]   assemble + validate + report (+ goldens)\n  fixb explain [src] <entity-file>           show what a source file compiles into\n  fixb explode <profile.json> [instruments.json] [--out=dir] [--idea]\n                                             decompile an existing profile into a workspace\n  fixb init    [dir] [--idea]                scaffold a starter workspace (+ IntelliJ files)\n  fixb watch   [src] [--out=dir]             rebuild on change (for the IDE terminal)\n\ndocs: docs/PROFILE-WORKSPACE.md"

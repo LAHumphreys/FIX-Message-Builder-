@@ -10,25 +10,25 @@
 
 ```sh
 # dev (this repo)
-npm run build:fixb                 # bundle the CLI → dist-fixb/fixb.mjs
+npm run build:fixb                 # bundle the CLI → dist-fixb/fixb.cjs
 
 # anywhere with Node (the bundle ships in internal-dist — no npm needed)
-node fixb.mjs init  profile-src [--idea]   # scaffold a starter workspace (+ IntelliJ files)
-node fixb.mjs build profile-src --out=dist-config   # assemble + validate + BUILD-REPORT.md
-node fixb.mjs build profile-src --out=dist-config --check   # CI: fail if outputs are stale
-node fixb.mjs watch profile-src --out=dist-config   # rebuild on change (IDE terminal)
-node fixb.mjs explain profile-src links/east-uat.json       # what did this file compile into?
-node fixb.mjs explode work.profile.json instruments.json --out=profile-src --idea  # migrate
+node fixb.cjs init  profile-src [--idea]   # scaffold a starter workspace (+ IntelliJ files)
+node fixb.cjs build profile-src --out=dist-config   # assemble + validate + BUILD-REPORT.md
+node fixb.cjs build profile-src --out=dist-config --check   # CI: fail if outputs are stale
+node fixb.cjs watch profile-src --out=dist-config   # rebuild on change (IDE terminal)
+node fixb.cjs explain profile-src links/east-uat.json       # what did this file compile into?
+node fixb.cjs explode work.profile.json instruments.json --out=profile-src --idea  # migrate
 ```
 
 **IDE experience (WebStorm / IntelliJ).** `init` and `explode` produce a
 **self-contained** workspace: the entity schemas are copied in (`schemas/`),
-every file is stamped with `$schema`, and `fixb.mjs` itself is copied into
+every file is stamped with `$schema`, and `fixb.cjs` itself is copied into
 the folder — so completion, enum restriction and required-property checks
 work offline with zero setup, and the workspace builds anywhere (commit it
 to a private repo and the tool version travels with the config). `--idea`
 (both commands) additionally writes `.idea/watcherTasks.xml` (a File
-Watcher running `node fixb.mjs build` on save — BUILD-REPORT.md refreshes
+Watcher running `node fixb.cjs build` on save — BUILD-REPORT.md refreshes
 as you type) and `.idea/jsonSchemas.xml` (pattern-based schema mappings):
 open the workspace folder as the WebStorm project and it all just works.
 Prefer a terminal? `fixb watch` does the same rebuild-on-save.
@@ -40,9 +40,16 @@ the IDE, refocus the browser tab, and the recompiled profile is loaded with
 compile errors surfaced in the panel. The compiled `work.profile.json`
 remains the deployment artifact; the preview never writes it.
 
-**Node compatibility**: the bundled CLI targets **Node ≥ 14.18** (esbuild
-`--target=node14.18`, no npm, no dependencies) and is exercised on real
-Node 14.18/16.20 binaries; outputs are byte-identical across Node versions.
+**Node compatibility**: the bundled CLI is CommonJS targeting **bare
+Node ≥ 10** (esbuild `--target=node10`, no npm, no dependencies, no ESM,
+no `fs.mkdir recursive`, no `node:` require specifiers, no post-Node-10
+runtime APIs) and is exercised on real Node 10/14/16 binaries; outputs are
+byte-identical across Node versions — sorts that feed canonical output
+carry explicit tiebreaks because Node 10's `Array#sort` is unstable.
+Like the web app, the CLI makes **zero network calls**: CI scans the
+bundle for Node's network modules (`http(s)`, `net`, `tls`, `dgram`,
+`dns`) and process spawning (`scripts/check-privacy.mjs`) — nothing
+leaves the machine.
 
 Entity schemas for IDE completion live in `docs/schemas/workspace/`
 (`workspace`, `link`, `flow`; conventions/mappings/instruments reuse the
@@ -310,7 +317,7 @@ fixb explain [src] <entity>        # print the compiled profile JSON for one ent
                                    #   annotated with which source line produced what
 fixb explode <profile.json> [instruments] [--idea]  # migrate: decompile a profile into a workspace
 fixb init    [dir] [--idea]        # scaffold a new workspace with commented starter files
-                                   #   (both copy schemas/ + fixb.mjs in: self-contained;
+                                   #   (both copy schemas/ + fixb.cjs in: self-contained;
                                    #    --idea adds the IntelliJ File Watcher + mappings)
 ```
 

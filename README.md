@@ -6,10 +6,10 @@ step. Copy this directory's contents to a static web server and follow
 
 | | |
 | --- | --- |
-| Built from | `05b0405` on `dev` |
+| Built from | `cf21466` on `dev` |
 | Layout | `index.html` (host page, fill its 3 TODOs) + `starter.*.json` + `builder/` (the app, relative paths — serves from any subdirectory) |
 | Docs included | QUICKSTART.md, INTERNAL-HOST.md, PROFILE-AUTHORING.md, PROFILE-WORKSPACE.md, schemas/ (JSON Schemas for IDE completion) |
-| Config tool | `fixb.mjs` — profile-workspace CLI (`node fixb.mjs init profile-src`, then `build`); needs Node ≥ 14.18 only, no npm. See PROFILE-WORKSPACE.md §0 |
+| Config tool | `fixb.cjs` — profile-workspace CLI (`node fixb.cjs init profile-src --idea`, then `build`); runs on bare Node ≥ 10 (CommonJS, no npm, zero network access — CI-scanned). See PROFILE-WORKSPACE.md §0 |
 
 This branch is a build artifact, refreshed manually from `dev` — do not
 edit it directly or merge it anywhere.
